@@ -1,0 +1,13 @@
+# Python aerospace & GPU verification solvers for Google Colab Pro (A100 GPU)
+# PyTorch with CUDA is pre-installed on Google Colab Pro.
+numpy>=1.26
+scipy>=1.11
+matplotlib>=3.8
+trimesh>=4.0
+python-fcl>=0.7
+cantera>=3.0
+ross-rotordynamics>=1.4
+mujoco>=3.1
+control>=0.10
+casadi>=3.6
+z3-solver>=4.12

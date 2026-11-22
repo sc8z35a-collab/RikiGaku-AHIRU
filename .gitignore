@@ -1,0 +1,5 @@
+__pycache__/
+*.py[cod]
+verification_out/
+.ipynb_checkpoints/
+*.zip
