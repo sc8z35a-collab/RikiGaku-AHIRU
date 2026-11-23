@@ -315,15 +315,21 @@ def _run_calculix_hot_streak_turbine_fea(work_dir: Path, t4_max_k: float, t4_avg
         "S",
         "*END STEP",
     ]
-    job = fea_dir / "turb_hot_streak"
-    job.with_suffix(".inp").write_text("\n".join(inp_lines) + "\n", encoding="utf-8")
+    import shutil as _shutil
+    scratch_dir = Path("/tmp/ccx_ahiru_hs")
+    scratch_dir.mkdir(parents=True, exist_ok=True)
+    inp_text = "\n".join(inp_lines) + "\n"
+    (fea_dir / "turb_hot_streak.inp").write_text(inp_text, encoding="utf-8")
+    (scratch_dir / "turb_hot_streak.inp").write_text(inp_text, encoding="utf-8")
 
-    proc = subprocess.run([ccx, "-i", job.name], cwd=str(fea_dir), capture_output=True, text=True, timeout=90)
+    proc = subprocess.run([ccx, "-i", "turb_hot_streak"], cwd=str(scratch_dir), capture_output=True, text=True, timeout=90)
     if proc.returncode != 0:
         raise RuntimeError(f"CalculiX hot-streak FEA failed: {proc.stdout[-400:]} {proc.stderr[-400:]}")
 
-    # Parse exact Von Mises stress across all C3D8 integration points from .dat output!
-    dat_path = job.with_suffix(".dat")
+    # Copy solved .dat/.frd back to persistent fea_dir & parse Von Mises stresses
+    dat_path = scratch_dir / "turb_hot_streak.dat"
+    if dat_path.exists():
+        _shutil.copy2(dat_path, fea_dir / "turb_hot_streak.dat")
     vm_list: List[float] = []
     for line in dat_path.read_text(encoding="utf-8", errors="ignore").splitlines():
         parts = line.split()
