@@ -114,7 +114,7 @@ def _build_qualification_dashboard(master: Dict[str, Any], out_html: Path) -> Pa
         ("Wall 2C: 3D IGE/HGI + Crosswind", f"Worst ΔT_HGI={m3['worst_dT_HGI_K']} K, Ret={m3['worst_thrust_retention']*100:.1f}%", m3["verdict"]),
         ("Wall 3: G0.4 Balance & Hot-Streak FEA", f"3σ Orbit={m4['ross_two_plane_balance_mc']['orbit_3sigma_um']}µm, FEA SF={m4['calculix_3d_hot_streak_fea']['yield_sf_hot_streak']}", m4["verdict"]),
         ("Wall 4+6: Zero-Clutch 60V FOC & KiCad", f"DRC={eda['drc_ipc2152']['drc_errors']}, Vbus={eda['ngspice_60v_foc']['vbus_min_V']}V, 60V SF={eda['ngspice_60v_foc']['mosfet_60v_voltage_sf']}", eda["verdict"]),
-        ("Wall 5+6: IMU, C11 FW & 10k-100k MC", f"1X={m5['imu_isolation_and_sysid']['atten_1x_3350Hz_dB']}dB, Surv={m5['jax_6dof_monte_carlo']['survival_rate_pct']}%, WCET={m5['c11_production_firmware_sil']['wcet_us']}µs", m5["verdict"]),
+        ("Wall 5+6: IMU, C11 FW & 10k-100k MC", f"1X={m5['imu_isolation_and_sysid']['atten_1x_3350Hz_dB']}dB, Surv={m5['jax_6dof_monte_carlo']['survival_rate_pct']}%, WCET={m5['c11_production_firmware_sil'].get('wcet_us', 'N/A')}µs", m5["verdict"]),
     ]
     fig.add_trace(
         go.Table(

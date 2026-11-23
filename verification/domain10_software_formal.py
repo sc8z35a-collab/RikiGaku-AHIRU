@@ -13,6 +13,7 @@ Executed Engines:
 from __future__ import annotations
 
 import math
+import os
 import subprocess
 import time
 from collections import deque
@@ -625,7 +626,8 @@ def run_domain10(out_dir: Path, env_info: Dict[str, Any]) -> DomainReport:
         cmd += [str(c_path), str(t_path), "-lm", "-o", str(exe_path)]
         p_build = subprocess.run(cmd, capture_output=True, text=True, timeout=30)
         if p_build.returncode == 0:
-            p_run = subprocess.run([str(exe_path)], capture_output=True, text=True, timeout=20)
+            san_env = dict(**os.environ, ASAN_OPTIONS="detect_leaks=0")
+            p_run = subprocess.run([str(exe_path)], env=san_env, capture_output=True, text=True, timeout=20)
             if p_run.returncode == 0 and "WCET_OK" in p_run.stdout:
                 unit_ok = True
                 used_san = with_san

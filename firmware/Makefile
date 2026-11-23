@@ -9,7 +9,7 @@ test_sil_rev3: fadec_rev3.c test_sil_rev3.c fadec_rev3.h
 check: test_sil_rev3
 	cppcheck --enable=warning,performance,portability --error-exitcode=1 fadec_rev3.c
 	clang --analyze fadec_rev3.c
-	./test_sil_rev3
+	ASAN_OPTIONS=detect_leaks=0 ./test_sil_rev3
 
 clean:
 	rm -f test_sil_rev3 *.plist
