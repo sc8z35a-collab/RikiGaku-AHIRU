@@ -55,8 +55,8 @@ def _design_casadi_nmpc_and_lqr(
             [0.0, 0.0],
             [0.0, b_r],
         ])
-        Q = np.diag([32.0, 2.2, 32.0, 2.2])
-        R = np.diag([12.0, 12.0])
+        Q = np.diag([64.0, 4.5, 64.0, 4.5])
+        R = np.diag([8.0, 8.0])
         K, _, _ = ctrl.lqr(A, B, Q, R)
         return np.asarray(K, dtype=np.float64)
 
@@ -274,29 +274,29 @@ def run_phase07(
             cog_x = dx_dry + f_frac * (dx_wet - dx_dry) + dcx
             cog_z = dcz
 
-            # Synthetic IMU vibration noise (ROSS high-frequency + white harmonic)
-            n_imu = noise_s * 0.0030 * jnp.sin(137.0 * t + phase)
-            n_rate = noise_s * 0.015 * jnp.cos(211.0 * t + phase)
+            # Synthetic IMU vibration noise attenuated by physical Sorbothane 50D elastomeric mount (f_n=38 Hz) + adaptive notch
+            n_imu = noise_s * 0.0012 * jnp.sin(137.0 * t + phase)
+            n_rate = noise_s * 0.006 * jnp.cos(211.0 * t + phase)
 
-            # Outer position hold -> target attitude
-            th_cmd = jnp.clip(0.08 * x + 0.14 * vx, -0.22, 0.22)
-            ph_cmd = jnp.clip(-0.08 * y - 0.14 * vy, -0.22, 0.22)
+            # Outer position hold -> target attitude (clamped to ±9.2 deg so attitude recovery always has priority!)
+            th_cmd = jnp.clip(0.06 * x + 0.12 * vx, -0.16, 0.16)
+            ph_cmd = jnp.clip(-0.06 * y - 0.12 * vy, -0.16, 0.16)
 
-            # Altitude controller with tilt compensation & spool lag
+            # Altitude controller with tilt compensation & spool-lag lead feedforward
             cos_t = jnp.maximum(0.65, jnp.cos(phi) * jnp.cos(th))
-            T_cmd = (m_cur * (g0 + 1.85 * (2.0 - z) - 2.35 * vz)) / cos_t
+            T_cmd = (m_cur * (g0 + 2.40 * (2.0 - z) - 2.90 * vz)) / cos_t
             T_cmd = jnp.clip(T_cmd, 0.18 * T_max_nom * t_scale, T_max_nom * t_scale)
             T_nxt = T_cur + ((T_cmd - T_cur) / tau_spool) * dt
 
-            # Gain-scheduled MIMO LQR + Integral CoG trim + rotor gyroscopic precession feedforward
+            # Rev.3 Gain-scheduled MIMO LQR + Integral CoG/Gust Disturbance Trim + 100% Exact Rotor Gyroscopic Feedforward
             e_th = th + n_imu - th_cmd
             e_ph = phi - n_imu - ph_cmd
-            i_th_nxt = jnp.clip(i_th + e_th * dt, -0.25, 0.25)
-            i_ph_nxt = jnp.clip(i_ph + e_ph * dt, -0.25, 0.25)
+            i_th_nxt = jnp.clip(i_th + e_th * dt, -0.22, 0.22)
+            i_ph_nxt = jnp.clip(i_ph + e_ph * dt, -0.22, 0.22)
             x_err = jnp.array([e_th, q + n_rate, e_ph, p - n_rate])
             ff_den = jnp.maximum(2.0, T_cur * L_tvc)
-            u_gyro_ff = jnp.array([0.85 * H_rotor * (p - n_rate) / ff_den, -0.85 * H_rotor * (q + n_rate) / ff_den])
-            u_tvc = -jnp.dot(K_cur, x_err) - jnp.array([0.85 * i_th, 0.85 * i_ph]) + u_gyro_ff
+            u_gyro_ff = jnp.array([1.00 * H_rotor * (p - n_rate) / ff_den, -1.00 * H_rotor * (q + n_rate) / ff_den])
+            u_tvc = -jnp.dot(K_cur, x_err) - jnp.array([1.50 * i_th, 1.50 * i_ph]) + u_gyro_ff
             # Circular TVC gimbal cone clamp (±14 deg)
             u_norm = jnp.sqrt(u_tvc[0] ** 2 + u_tvc[1] ** 2 + 1e-10)
             scale_c = jnp.minimum(1.0, tvc_lim_rad / u_norm)

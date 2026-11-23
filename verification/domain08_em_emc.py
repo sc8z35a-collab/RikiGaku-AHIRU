@@ -67,15 +67,15 @@ def _solve_2d_starter_em(rpm_max: float, rev2_wye_delta: bool = False) -> Dict[s
     B_map = np.abs(radial_env * np.cos(p_pairs * TH) * slot_mod)
 
     if rev2_wye_delta:
-        # Rev.2 Wye-Start (Kv_start = 5,500 RPM/V) -> Delta-Generate (Kv_run = sqrt(3)*5,500 = 9,526 RPM/V)
-        # Plus integrated sprag-clutch decouple failsafe for >215k RPM overspeed
-        Kv_start = 5500.0
-        Kv_run = Kv_start * math.sqrt(3.0)  # 9,526.3 RPM/V
-        Kt = 60.0 / (2.0 * math.pi * Kv_start)  # 1.736 mNm/A in Wye-start mode
-        T_crank_Nm = Kt * 22.0 * 0.88           # 33.6 mNm
-        T_req_Nm = 0.014                        # Rev.2 low-inertia rotor + ceramic bearings
-        V_emf_max_rpm = rpm_max / Kv_run        # 212,000 / 9,526 = 22.25 V (<= 28 V safe for 40V MOSFETs!)
-        topology = "Rev.2 Wye-Start(5.5kV)/Delta-Gen(9.5kV) + Sprag Clutch"
+        # Rev.3 Celeroton-Class Direct-Coupled 2-Pole SmCo28 Starter-Generator (Kv = 7,800 RPM/V, ZERO Mechanical Clutch!)
+        # Driven by 60 V GaN/MOSFET FOC Inverter/Active Rectifier (EPC2206 / BSC028N06LS3, 60V rated -> 2.3x V_emf margin!)
+        # Staged ignition (glow preheat 6A -> FOC starter crank 28A + igniter 3A PWM) eliminates all mechanical clutches/relays!
+        Kv_direct = 7800.0
+        Kt = 60.0 / (2.0 * math.pi * Kv_direct)  # 1.224 mNm/A
+        T_crank_Nm = Kt * 28.0 * 0.88            # 30.16 mNm FOC cranking torque
+        T_req_Nm = 0.0135                        # Rev.3 low-inertia 6+6 rotor + metered oil-mist GRW 685 bearings
+        V_emf_max_rpm = rpm_max / Kv_direct      # 201,000 / 7,800 = 25.77 V (<= 28 V & <43% of 60V GaN/MOSFET rating!)
+        topology = "Rev.3 Direct-Coupled 2-Pole SmCo28 (Kv=7.8k, ZERO Clutch) + 60V GaN FOC"
     else:
         # Legacy Rev.1 direct-coupled Kv=3,600 RPM/V winding
         Kv_direct = 3600.0

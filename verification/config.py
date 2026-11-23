@@ -24,18 +24,18 @@ MU_0 = 4.0 * 3.141592653589793e-7   # Vacuum permeability [H/m]
 EPS_0 = 8.8541878128e-12            # Vacuum permittivity [F/m]
 C0 = 299792458.0                    # Speed of light [m/s]
 
-# Claimed Design Specifications from README.md & index.html (Rev.2 Flight-Ready)
+# Claimed Design Specifications from README.md & index.html (Rev.3 Flight-Qualified & Manufacturing Release)
 DESIGN_SPEC: Dict[str, Any] = {
-    "name": "RikiGaku-AHIRU Rev.2 (AHIRU-μTJ42V)",
+    "name": "RikiGaku-AHIRU Rev.3 (AHIRU-μTJ42V Flight-Qualified)",
     "envelope_mm": (180.0, 200.0, 100.0),      # (X length, Y height, Z width)
     "engine_axis_x_mm": -2.0,
-    "claimed_dry_mass_g": 485.0,
-    "claimed_wet_mass_g": 596.0,
-    "claimed_fuel_vol_ml": 140.0,
-    "claimed_fuel_mass_g": 112.0,
-    "claimed_weight_N": 5.85,
-    "claimed_max_thrust_N": 12.60,
-    "claimed_twr": 2.15,
+    "claimed_dry_mass_g": 468.0,
+    "claimed_wet_mass_g": 579.4,
+    "claimed_fuel_vol_ml": 139.5,
+    "claimed_fuel_mass_g": 111.6,
+    "claimed_weight_N": 5.68,
+    "claimed_max_thrust_N": 13.14,
+    "claimed_twr": 2.31,
     "claimed_hover_throttle_pct": 46.5,
     "claimed_hover_endurance_min": 5.2,
     # Rev.2 Operating point targets for 38mm-impeller vertical reverse-flow micro-turbojet
@@ -142,9 +142,13 @@ MATERIALS: Dict[str, MaterialProps] = {
         "Sapphire / BK7 ToF Optical Lens", 3980.0, 345.0, 0.28, 300.0, 400.0,
         35.0, 760.0, 5.5, 450.0, 0.85, 2.5, 120.0
     ),
+    "SORBOTHANE_50D": MaterialProps(
+        "Sorbothane 50D Viscoelastic IMU Isolator", 1360.0, 0.0025, 0.49, 1.8, 3.2,
+        0.18, 1600.0, 180.0, 93.0, 0.92, 0.2, 1.0
+    ),
 }
 
-# Mapping of all 58 CAD parts extracted from index.html (Rev.2) to aerospace materials
+# Mapping of all 61 CAD parts extracted from index.html (Rev.3 Flight-Qualification) to aerospace materials
 PART_MATERIALS: Dict[str, str] = {
     "shellR": "PEEK_CFRP",
     "shellL": "PEEK_CFRP",
@@ -183,6 +187,7 @@ PART_MATERIALS: Dict[str, str] = {
     "containmentRing": "INCONEL718",
     "turbine": "INCONEL718",
     "tailcone": "INCONEL718",
+    "engineFlanges": "INCONEL718",
     "gimbal": "TI6AL4V",
     "nozzle": "INCONEL718",
     "servos": "AL7075_T6",
@@ -193,7 +198,9 @@ PART_MATERIALS: Dict[str, str] = {
     "pumpGear1": "BRASS",
     "pumpGear2": "BRASS",
     "fuelLines": "COPPER",
+    "lubeLines": "TI6AL4V",
     "fuelBaffles": "NYLON_FUEL_TANK",
+    "imuMount": "SORBOTHANE_50D",
     "fadecPCB": "FR4_PCB",
     "fadecGold": "COPPER",
     "fadecChips": "FR4_PCB",

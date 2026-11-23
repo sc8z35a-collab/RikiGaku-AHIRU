@@ -332,8 +332,8 @@ def run_domain05(
     ))
 
     # 5. Computational Aeroacoustics (CAA): Blade Passing Frequency (BPF) & Lighthill Supersonic Jet Noise
-    bpf_comp_kHz = (20.0 * rpm_max / 60.0) / 1e3
-    bpf_turb_kHz = (19.0 * rpm_max / 60.0) / 1e3
+    bpf_comp_kHz = (12.0 * rpm_max / 60.0) / 1e3  # Rev.3 6+6 splitter impeller (12 exit blades -> 40.2 kHz ultrasonic)
+    bpf_turb_kHz = (17.0 * rpm_max / 60.0) / 1e3  # Rev.3 17-blade prime-count blisk (57.0 kHz ultrasonic)
     V_e = float(d02_metrics.get("V_exit_m_s", 380.0))
     D_e = geom["d_exit_m"]  # Measured CAD nozzle exit diameter (19.6 mm Rev.2 vs 28.4 mm Rev.1)
     c0 = 340.3

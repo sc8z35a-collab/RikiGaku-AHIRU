@@ -175,6 +175,9 @@ def run_phase01(
         ("nozzle", "bellyShield", "Neutral De Laval Nozzle vs Ceramic Belly Shield"),
         ("nozzle", "tailcone", "De Laval Nozzle vs Exhaust Tailcone Plug"),
         ("pumpGear1", "pumpGear2", "Fuel Pump Meshing Brass Gears"),
+        ("engineFlanges", "gimbal", "Rev.3 Hot-Section Bolted Flange vs TVC Gimbal Ring"),
+        ("lubeLines", "shroudL", "Rev.3 Metered Oil-Mist Lube Lines vs Ceramic Thermal Shroud"),
+        ("imuMount", "fadecPCB", "Rev.3 Sorbothane 50D IMU Isolators vs FADEC PCB Stack"),
     ]
 
     static_results: List[Dict[str, Any]] = []

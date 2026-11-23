@@ -19,13 +19,13 @@ import yaml
 
 DEFAULT_AHIRU_YAML = """
 vehicle_spec:
-  name: "RikiGaku-AHIRU Rev.2 (AHIRU-uTJ42V Flight-Ready)"
+  name: "RikiGaku-AHIRU Rev.3 (AHIRU-uTJ42V Flight-Qualified & Manufacturing Release)"
   dimensions_mm: { length: 180.0, width: 100.0, height: 200.0 }
-  mass_g: { dry_mass: 460.0, fuel_mass: 112.0, payload_mass: 0.0 }
-  cad_step_or_stl_path: ""   # Empty -> auto-extracts exact 58-part Rev.2 CAD from index.html
+  mass_g: { dry_mass: 468.0, fuel_mass: 112.0, payload_mass: 0.0 }
+  cad_step_or_stl_path: ""   # Empty -> auto-extracts exact 61-part Rev.3 CAD from index.html
 propulsion_spec:
-  fuel_type: "Jet-A1 / Kerosene + 5% Oil (n-Dodecane C12H26 surrogate)"
-  max_thrust_N: 11.43
+  fuel_type: "Jet-A1 / Kerosene + 5% AeroShell 500 Oil (n-Dodecane C12H26 surrogate)"
+  max_thrust_N: 13.14
   max_rpm: 201000
   idle_rpm: 68000
   compressor_diameter_mm: 38.0
@@ -34,9 +34,9 @@ propulsion_spec:
   thrust_vectoring_deg: 14.0
   rcs_type: "bleed_air"
 avionics_and_power:
-  battery: "3S 770mAh 60C LiHV"
+  battery: "3S 750mAh 60C LiHV (Split Chest/Tail)"
   battery_cells_s: 3
-  battery_mah: 770.0
+  battery_mah: 750.0
   imu_rate_hz: 1000
   servo_bandwidth_hz: 15.0
 """

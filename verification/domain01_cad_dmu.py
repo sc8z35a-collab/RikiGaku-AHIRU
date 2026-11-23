@@ -442,6 +442,9 @@ def run_domain01(cad: CADAssembly, out_dir: Path, env_info: Dict[str, Any]) -> D
         ("nozzle", "tailcone", "De Laval nozzle vs Exhaust tailcone plug"),
         ("nozzle", "bellyShield", "Neutral nozzle vs Ceramic belly heat shield"),
         ("pumpGear1", "pumpGear2", "Fuel pump meshing gears static tooth interference"),
+        ("engineFlanges", "gimbal", "Rev.3 hot-section bolted flange vs TVC gimbal ring"),
+        ("lubeLines", "shroudL", "Rev.3 metered oil-mist lube lines vs Ceramic thermal shroud"),
+        ("imuMount", "fadecPCB", "Rev.3 Sorbothane 50D IMU isolators vs FADEC PCB stack"),
     ]
 
     pair_results: List[Dict[str, Any]] = []
