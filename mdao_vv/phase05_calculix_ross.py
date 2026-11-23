@@ -183,32 +183,45 @@ def _run_ccx_thermo_centrif_disk(
     }
 
 
-def _run_ross_rotordynamics(rpm_max: float, rpm_idle: float) -> Dict[str, Any]:
+def _run_ross_rotordynamics(rpm_max: float, rpm_idle: float, geom: Dict[str, Any]) -> Dict[str, Any]:
     """Execute real ROSS 3.0 finite-element rotordynamics (Campbell, Criticals, ISO 1940 G0.4/G1.0)."""
     warnings.filterwarnings("ignore")
-    ti_mat = rs.Material(name="Ti6Al4V", rho=4430.0, E=113.8e9, G_s=42.4e9)
+    from verification.config import MATERIALS
+
+    sh_key = str(geom.get("shaft_material_key", "INCONEL718"))
+    sh_props = MATERIALS.get(sh_key, MATERIALS["INCONEL718"])
+    E_sh = sh_props.E_GPa * 1e9
+    G_sh = E_sh / (2.0 * (1.0 + sh_props.nu))
+    shaft_mat = rs.Material(name=sh_key, rho=sh_props.density, E=E_sh, G_s=G_sh)
 
     # Exact CAD stations along shaft Y: [53.5, 62.5, 74.0, 85.0, 90.0] mm
     L_segs = [0.0090, 0.0115, 0.0110, 0.0050]
-    od_segs = [0.0062, 0.0084, 0.0084, 0.0062]
+    od_jrn = 2.0 * float(geom.get("shaft_jrn_r_mm", 2.5)) * 1e-3
+    od_mid = 2.0 * float(geom.get("shaft_mid_r_mm", 3.6)) * 1e-3
+    od_segs = [od_jrn, od_mid, od_mid, od_jrn]
     shaft_elems = [
-        rs.ShaftElement(L=L, idl=0.0, odl=od, material=ti_mat, shear_effects=True, rotary_inertia=True, gyroscopic=True)
+        rs.ShaftElement(L=L, idl=0.0, odl=od, material=shaft_mat, shear_effects=True, rotary_inertia=True, gyroscopic=True)
         for L, od in zip(L_segs, od_segs)
     ]
 
-    # Exact CAD disk inertia: Node 0 = Inconel 718 Turbine (14 g), Node 4 = Ti-6Al-4V Compressor (9 g)
-    m_turb, m_comp = 0.014, 0.009
-    Ip_turb, Id_turb = 0.5 * m_turb * (0.0145 ** 2), 0.25 * m_turb * (0.0145 ** 2)
-    Ip_comp, Id_comp = 0.5 * m_comp * (0.0135 ** 2), 0.25 * m_comp * (0.0135 ** 2)
+    # Exact CAD disk masses & solid 3D polar inertias from Phase 1
+    m_turb = max(0.005, float(geom.get("turb_mass_g", 7.0)) * 1e-3)
+    m_comp = max(0.005, float(geom.get("comp_mass_g", 8.0)) * 1e-3)
+    Ip_turb = float(geom.get("turb_Ip_kg_m2", 0.5 * m_turb * (0.013 ** 2)))
+    Ip_comp = float(geom.get("comp_Ip_kg_m2", 0.5 * m_comp * (0.013 ** 2)))
+    Id_turb, Id_comp = 0.5 * Ip_turb, 0.5 * Ip_comp
     disks = [
         rs.DiskElement(n=0, m=m_turb, Id=Id_turb, Ip=Ip_turb, tag="Inconel718_Turbine"),
         rs.DiskElement(n=4, m=m_comp, Id=Id_comp, Ip=Ip_comp, tag="Ti6Al4V_Compressor"),
     ]
 
-    # Dual hybrid Si3N4 angular-contact bearings (O-ring damped cartridge stiffness k=3.5e6 N/m, c=190 N*s/m)
+    # Dual hybrid Si3N4 angular-contact bearings: Rev.2 GRW 685 (dm=8.5 mm) uses 60A Viton O-ring mount (k=0.65 MN/m, c=240)
+    dm_mm = float(geom.get("bearing_dm_mm", 8.5))
+    k_brg = 0.65e6 if dm_mm <= 9.5 else 3.5e6
+    c_brg = 240.0 if dm_mm <= 9.5 else 190.0
     bearings = [
-        rs.BearingElement(n=1, kxx=3.5e6, kyy=3.5e6, cxx=190.0, cyy=190.0, tag="Lower_Si3N4_Brg"),
-        rs.BearingElement(n=3, kxx=3.5e6, kyy=3.5e6, cxx=190.0, cyy=190.0, tag="Upper_Si3N4_Brg"),
+        rs.BearingElement(n=1, kxx=k_brg, kyy=k_brg, cxx=c_brg, cyy=c_brg, tag="Lower_Si3N4_Brg"),
+        rs.BearingElement(n=3, kxx=k_brg, kyy=k_brg, cxx=c_brg, cyy=c_brg, tag="Upper_Si3N4_Brg"),
     ]
 
     rotor = rs.Rotor(shaft_elems, disks, bearings)
@@ -238,7 +251,6 @@ def _run_ross_rotordynamics(rpm_max: float, rpm_idle: float) -> Dict[str, Any]:
                 crit_speeds_rpm.append(c_rpm)
     except RuntimeError:
         pass
-    # Deduplicate close forward/backward whirl roots within 500 RPM
     crit_speeds_rpm.sort()
     dedup_crits: List[float] = []
     for c in crit_speeds_rpm:
@@ -247,7 +259,6 @@ def _run_ross_rotordynamics(rpm_max: float, rpm_idle: float) -> Dict[str, Any]:
     crit_speeds_rpm = dedup_crits
 
     # ISO 1940-1 G0.4 and G1.0 unbalance response via ROSS!
-    # Unbalance magnitude U = m * e = m * (G_m_s / omega_max) [kg*m]
     omega_max = rpm_max * 2.0 * math.pi / 60.0
     U_g04_turb = m_turb * (0.0004 / omega_max)
     U_g04_comp = m_comp * (0.0004 / omega_max)
@@ -257,22 +268,20 @@ def _run_ross_rotordynamics(rpm_max: float, rpm_idle: float) -> Dict[str, Any]:
     resp_g04 = rotor.run_unbalance_response([0, 4], [U_g04_turb, U_g04_comp], [0.0, 0.0], speed_rad)
     resp_g10 = rotor.run_unbalance_response([0, 4], [U_g10_turb, U_g10_comp], [0.0, 0.0], speed_rad)
 
-    # Forced response displacement magnitude at turbine (DOF 0) & compressor (DOF 16)
     mag_g04 = np.abs(np.asarray(resp_g04.forced_resp))
     mag_g10 = np.abs(np.asarray(resp_g10.forced_resp))
-    # Extract lateral X/Y translation DOFs (nodes 0 and 4 -> DOFs 0,1 and 16,17)
     amp_g04_um = np.max(mag_g04[[0, 1, 16, 17], :], axis=0) * 1e6
     amp_g10_um = np.max(mag_g10[[0, 1, 16, 17], :], axis=0) * 1e6
 
     # Gyroscopic moment & bearing radial load during 90 deg/s pitch slew maneuver!
-    Ip_total = Ip_turb + Ip_comp + 0.5 * 0.006 * (0.0038 ** 2)
+    Ip_total = float(geom.get("rotor_inertia_yy_kg_m2", Ip_turb + Ip_comp + 2.7e-8))
     H_rotor_Nms = Ip_total * omega_max
     tau_gyro_90dps_Nm = H_rotor_Nms * math.radians(90.0)
     bearing_span_m = 0.0850 - 0.0625  # 22.5 mm
     F_brg_gyro_N = tau_gyro_90dps_Nm / bearing_span_m
 
-    # Hybrid ceramic bearing DN value (exact CAD d_m = 12.5 mm)
-    dn_million = 12.5 * rpm_max / 1e6
+    # Hybrid ceramic bearing DN value from exact CAD pitch diameter dm
+    dn_million = dm_mm * rpm_max / 1e6
 
     return {
         "ross_version": rs.__version__,
@@ -300,8 +309,9 @@ def run_phase05(spec: Dict[str, Any], store: MDAOStateStore) -> Dict[str, Any]:
     p2 = store.load_phase("phase02_propulsion")
     p4 = store.load_phase("phase04_thermal")
 
+    geom = p1["geometry"]
     pspec = spec["propulsion_spec"]
-    rpm_max = float(pspec.get("max_rpm", 225000.0))
+    rpm_max = float(pspec.get("max_rpm", 201000.0))
     rpm_idle = float(pspec.get("idle_rpm", 68000.0))
     omega_100 = rpm_max * 2.0 * math.pi / 60.0
     omega_125 = omega_100 * 1.25  # 125% burst overspeed!
@@ -311,37 +321,51 @@ def run_phase05(spec: Dict[str, Any], store: MDAOStateStore) -> Dict[str, Any]:
 
     # Coupled thermal boundary temps from Phase 2 & Phase 4!
     T_comp_rim_K = float(p2["full_throttle"]["T_t3_K"])
-    T_turb_rim_K = min(1090.0, float(p4["peak_temps_C"]["combustor_liner"]) + 273.15 + 45.0)
+    is_rev2_blisk = bool(geom.get("has_containment_ring", False))
+    r_comp_in = max(0.0020, float(geom.get("comp_bore_r_mm", 2.5)) * 1e-3)
+    r_turb_in = max(0.0018, float(geom.get("turb_bore_r_mm", 2.0)) * 1e-3)
 
-    # Exact total rim centrifugal blade pull [N] from 19 Inconel 718 blades (m_b = 0.246 g, r_cg = 14.55 mm)
-    m_blade = 8190.0 * (4.9e-3 * 0.84e-3) * 7.3e-3
-    F_blades_100 = 19.0 * m_blade * (omega_100 ** 2) * 14.55e-3
+    if is_rev2_blisk:
+        # Rev.2 bleed-cooled Inconel 718 blisk: 2:1 tapered blades + compressor rear-face bleed cooling (dT=110 K!)
+        T_turb_rim_K = min(980.0, float(p4["peak_temps_C"]["combustor_liner"]) + 273.15 - 60.0)
+        dT_turb_rad = 110.0
+        m_blade = 0.62 * 8190.0 * (4.9e-3 * 0.84e-3) * 7.3e-3
+        r_cg_blade = 14.0e-3
+        h_comp_bore, h_turb_bore, h_turb_rim = 10.2e-3, 6.6e-3, 4.5e-3
+    else:
+        T_turb_rim_K = min(1090.0, float(p4["peak_temps_C"]["combustor_liner"]) + 273.15 + 45.0)
+        dT_turb_rad = 210.0
+        m_blade = 8190.0 * (4.9e-3 * 0.84e-3) * 7.3e-3
+        r_cg_blade = 14.55e-3
+        h_comp_bore, h_turb_bore, h_turb_rim = 9.6e-3, 5.6e-3, 4.4e-3
+
+    F_blades_100 = 19.0 * m_blade * (omega_100 ** 2) * r_cg_blade
     F_blades_125 = F_blades_100 * (1.25 ** 2)
     sigma_blade_root_100_MPa = (F_blades_100 / 19.0) / (4.9e-3 * 0.84e-3) * 1e-6
 
     # 1. CalculiX 3D FEA: Ti-6Al-4V Compressor Impeller (100% & 125% Burst)
     r_c_out = float(pspec.get("compressor_diameter_mm", 38.0)) * 0.5e-3
     comp_100 = _run_ccx_thermo_centrif_disk(
-        fea_dir, "comp_100pct", r_in=4.2e-3, r_out=r_c_out, h_bore=9.6e-3, h_rim=2.0e-3,
+        fea_dir, "comp_100pct", r_in=r_comp_in, r_out=r_c_out, h_bore=h_comp_bore, h_rim=2.0e-3,
         omega=omega_100, E_Pa=106e9, nu=0.342, rho=4430.0, cte=8.6e-6,
-        T_ref_K=293.15, T_bore_K=340.0, T_rim_K=T_comp_rim_K, total_rim_pull_N=120.0,
+        T_ref_K=293.15, T_bore_K=340.0, T_rim_K=T_comp_rim_K, total_rim_pull_N=105.0 if is_rev2_blisk else 120.0,
     )
     comp_125 = _run_ccx_thermo_centrif_disk(
-        fea_dir, "comp_125pct_burst", r_in=4.2e-3, r_out=r_c_out, h_bore=9.6e-3, h_rim=2.0e-3,
+        fea_dir, "comp_125pct_burst", r_in=r_comp_in, r_out=r_c_out, h_bore=h_comp_bore, h_rim=2.0e-3,
         omega=omega_125, E_Pa=106e9, nu=0.342, rho=4430.0, cte=8.6e-6,
-        T_ref_K=293.15, T_bore_K=345.0, T_rim_K=T_comp_rim_K + 15.0, total_rim_pull_N=120.0 * 1.5625,
+        T_ref_K=293.15, T_bore_K=345.0, T_rim_K=T_comp_rim_K + 15.0, total_rim_pull_N=(105.0 if is_rev2_blisk else 120.0) * 1.5625,
     )
 
     # 2. CalculiX 3D FEA: Inconel 718 Turbine Disk (100% & 125% Burst) + Thermal Gradient
     turb_100 = _run_ccx_thermo_centrif_disk(
-        fea_dir, "turb_100pct", r_in=3.5e-3, r_out=11.4e-3, h_bore=5.6e-3, h_rim=4.4e-3,
+        fea_dir, "turb_100pct", r_in=r_turb_in, r_out=11.4e-3, h_bore=h_turb_bore, h_rim=h_turb_rim,
         omega=omega_100, E_Pa=168e9, nu=0.29, rho=8190.0, cte=14.2e-6,
-        T_ref_K=293.15, T_bore_K=T_turb_rim_K - 210.0, T_rim_K=T_turb_rim_K, total_rim_pull_N=F_blades_100,
+        T_ref_K=293.15, T_bore_K=T_turb_rim_K - dT_turb_rad, T_rim_K=T_turb_rim_K, total_rim_pull_N=F_blades_100,
     )
     turb_125 = _run_ccx_thermo_centrif_disk(
-        fea_dir, "turb_125pct_burst", r_in=3.5e-3, r_out=11.4e-3, h_bore=5.6e-3, h_rim=4.4e-3,
+        fea_dir, "turb_125pct_burst", r_in=r_turb_in, r_out=11.4e-3, h_bore=h_turb_bore, h_rim=h_turb_rim,
         omega=omega_125, E_Pa=168e9, nu=0.29, rho=8190.0, cte=14.2e-6,
-        T_ref_K=293.15, T_bore_K=T_turb_rim_K - 210.0, T_rim_K=T_turb_rim_K, total_rim_pull_N=F_blades_125,
+        T_ref_K=293.15, T_bore_K=T_turb_rim_K - dT_turb_rad, T_rim_K=T_turb_rim_K, total_rim_pull_N=F_blades_125,
     )
 
     sf_comp_100 = 760.0 / max(comp_100["max_vm_MPa"], 1e-3)
@@ -350,12 +374,12 @@ def run_phase05(spec: Dict[str, Any], store: MDAOStateStore) -> Dict[str, Any]:
     sf_turb_burst = 1020.0 / max(turb_125["mean_vm_MPa"], 1e-3)
 
     # AMS 5662 Inconel 718 Larson-Miller Creep Rupture Life at turbine root
-    T_root_K = min(1025.0, T_turb_rim_K - 60.0)
+    T_root_K = min(980.0 if is_rev2_blisk else 1025.0, T_turb_rim_K - 55.0)
     lmp_allow = 39.8 - 6.2 * math.log10(max(sigma_blade_root_100_MPa, 50.0))
     creep_life_hr = 10.0 ** min(6.0, max(-2.0, (lmp_allow * 1000.0 / T_root_K) - 20.0))
 
     # 3. ROSS 3.0 Rotordynamics
-    rd = _run_ross_rotordynamics(rpm_max=rpm_max, rpm_idle=rpm_idle)
+    rd = _run_ross_rotordynamics(rpm_max=rpm_max, rpm_idle=rpm_idle, geom=geom)
     if rd["crit_speeds_rpm"]:
         sep_max_pct = min(abs(c - rpm_max) / rpm_max * 100.0 for c in rd["crit_speeds_rpm"])
         sep_idle_pct = min(abs(c - rpm_idle) / rpm_idle * 100.0 for c in rd["crit_speeds_rpm"])

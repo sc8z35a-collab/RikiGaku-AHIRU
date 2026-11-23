@@ -104,16 +104,27 @@ def _solve_2d_cht_field(
     rcp_map[m_fadec] = MATERIALS["FR4_PCB"].density * MATERIALS["FR4_PCB"].cp_J_kgK
     region[m_fadec] = 7
 
-    # Compute exact CAD gap between battery min-X and ceramic shroud max-X!
-    shroud_max_x = float(max(cad.parts["shroudR"].bbox_max[0], cad.parts["shroudL"].bbox_max[0]))
-    bat_min_x = float(bat_part.bbox_min[0])
-    bat_shroud_gap_mm = bat_min_x - shroud_max_x
+    # Compute TRUE 3D surface gap between battery and ceramic thermal shroud via cKDTree (handles multi-cell split packs!)
+    from scipy.spatial import cKDTree
+    bat_v = np.asarray(bat_part.mesh_world.vertices)
+    sh_v = np.vstack([
+        np.asarray(cad.parts["shroudR"].mesh_world.vertices),
+        np.asarray(cad.parts["shroudL"].mesh_world.vertices),
+    ])
+    bat_shroud_gap_mm = float(np.min(cKDTree(sh_v).query(bat_v, k=1)[0]))
+    # If front battery vertices overlap shroud max X (Rev.1 collision), preserve negative signed gap
+    bat_front_v = bat_v[bat_v[:, 0] > ex]
+    shroud_max_x = float(np.max(sh_v[:, 0]))
+    if len(bat_front_v) and float(np.min(bat_front_v[:, 0])) < shroud_max_x:
+        bat_shroud_gap_mm = float(np.min(bat_front_v[:, 0])) - shroud_max_x
+
+    has_baffle = "thermalBaffle" in cad.parts
+    has_isolators = "thermalIsolators" in cad.parts
 
     # Fuel tank closest radial distance to shroud outer radius (true cylindrical clearance around engine axis EX!)
     ft_verts = np.asarray(cad.parts["fuelTank"].mesh_world.vertices)
     ft_rad = np.hypot(ft_verts[:, 0] - ex, ft_verts[:, 2])
-    sh_verts = np.asarray(cad.parts["shroudR"].mesh_world.vertices)
-    sh_rad = np.hypot(sh_verts[:, 0] - ex, sh_verts[:, 2])
+    sh_rad = np.hypot(sh_v[:, 0] - ex, sh_v[:, 2])
     fuel_shroud_gap_mm = float(np.min(ft_rad) - np.max(sh_rad))
 
     # Solve 2D steady-state operating CHT temperature field via GPU/CPU red-black / Jacobi relaxation
@@ -206,12 +217,12 @@ def _solve_2d_cht_field(
     T_node = np.full(6, T_AMB, dtype=np.float64)
 
     # Thermal capacitances C = m * c_p [J/K] from actual CAD masses
-    C_hot = max(0.085, (cad.parts["combustor"].mass_g + cad.parts["ngv"].mass_g + cad.parts["turbine"].mass_g) * 1e-3) * 450.0
+    C_hot = max(0.065, (cad.parts["combustor"].mass_g + cad.parts["ngv"].mass_g + cad.parts["turbine"].mass_g) * 1e-3) * 450.0
     C_shroud = max(0.008, (cad.parts["shroudR"].mass_g + cad.parts["shroudL"].mass_g) * 1e-3) * 950.0
     C_frame = max(0.025, cad.parts["frame"].mass_g * 1e-3) * 960.0
     C_fuel = max(0.035, (cad.parts["fuelLiquid"].mass_g + cad.parts["fuelTank"].mass_g) * 1e-3) * 1900.0
     C_bat = max(0.026, cad.parts["battery"].mass_g * 1e-3) * 1050.0
-    C_shell = max(0.110, (cad.parts["shellR"].mass_g + cad.parts["shellL"].mass_g) * 1e-3) * 1150.0
+    C_shell = max(0.070, (cad.parts["shellR"].mass_g + cad.parts["shellL"].mass_g) * 1e-3) * 1150.0
     C_vec = np.array([C_hot, C_shroud, C_frame, C_fuel, C_bat, C_shell])
 
     # Geometric areas
@@ -219,10 +230,16 @@ def _solve_2d_cht_field(
     t_aerogel = 0.0034                         # 3.4 mm actual CAD shroud thickness
     k_aerogel = 0.040                          # Effective high-temp aerogel conductivity
 
-    # Battery thermal conductance to shroud is DRAMATICALLY higher if gap <= 0 mm (direct touch!)
+    # Physical thermal conductances directly driven by CAD gaps & thermal-break hardware!
     G_shroud_bat = 0.42 if bat_shroud_gap_mm <= 0.5 else (0.045 / max(0.001, bat_shroud_gap_mm * 1e-3) * 0.00045)
-    G_shroud_fuel = 0.085 if fuel_shroud_gap_mm <= 4.5 else 0.035
-    G_hot_frame = 0.14   # Structural mounting bolt conduction bridge
+    if has_baffle and bat_shroud_gap_mm > 2.0:
+        G_shroud_bat *= 0.35  # Reflective Al-ZrO2 firewall splits air channel & shields chest pack
+    eps_bat_rad = 0.06 if (has_baffle and bat_shroud_gap_mm > 2.0) else 0.55
+
+    G_shroud_fuel = 0.085 if fuel_shroud_gap_mm <= 4.5 else 0.028
+    # 4× 3.5 mm ZrO2 ceramic bulkhead standoffs (k=2.2 W/mK) reduce hot-core->Al-7075 conduction ~6.5×!
+    G_hot_frame = 0.022 if has_isolators else 0.14
+    G_frame_bat = 0.015 if has_isolators else 0.09
     G_frame_shell = 0.25
 
     for idx in range(steps):
@@ -250,12 +267,12 @@ def _solve_2d_cht_field(
             # Engine off: no combustion heat, weak natural draft cooling -> heat soaks outward!
             Q[0] = -q_hot_shroud - G_hot_frame * (T_node[0] - T_node[2]) - 0.18 * (T_node[0] - T_AMB)
 
-        q_sh_bat = G_shroud_bat * (T_node[1] - T_node[4]) + 0.55 * SIGMA_SB * 0.0005 * (T_node[1] ** 4 - T_node[4] ** 4)
+        q_sh_bat = G_shroud_bat * (T_node[1] - T_node[4]) + eps_bat_rad * SIGMA_SB * 0.0005 * (T_node[1] ** 4 - T_node[4] ** 4)
         q_sh_fuel = G_shroud_fuel * (T_node[1] - T_node[3]) + 0.55 * SIGMA_SB * 0.0009 * (T_node[1] ** 4 - T_node[3] ** 4)
         q_sh_air = h_int * A_shroud * 0.6 * (T_node[1] - T_AMB)
 
         Q[1] = q_hot_shroud - q_sh_bat - q_sh_fuel - q_sh_air
-        Q[2] = G_hot_frame * (T_node[0] - T_node[2]) - G_frame_shell * (T_node[2] - T_node[5]) - 0.09 * (T_node[2] - T_node[4]) - 0.12 * (T_node[2] - T_AMB)
+        Q[2] = G_hot_frame * (T_node[0] - T_node[2]) - G_frame_shell * (T_node[2] - T_node[5]) - G_frame_bat * (T_node[2] - T_node[4]) - 0.12 * (T_node[2] - T_AMB)
         Q[3] = q_sh_fuel - 0.08 * (T_node[3] - T_node[5]) - 0.05 * (T_node[3] - T_AMB)
         # Battery also has internal I^2R ohmic heating (~3.5 W in flight, 0.2 W idle)
         Q_bat_ohmic = 3.5 if running else 0.2

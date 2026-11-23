@@ -31,14 +31,15 @@ def run_phase06(spec: Dict[str, Any], store: MDAOStateStore) -> Dict[str, Any]:
     p4 = store.load_phase("phase04_thermal")
 
     ap = spec["avionics_and_power"]
+    geom = p1["geometry"]
     cells_s = int(ap.get("battery_cells_s", 3))
-    # Actual CAD battery volume (~11.6 cm^3 -> ~381 mAh) vs user spec (850 mAh)
-    bat_cad_mah = 381.0
-    bat_spec_mah = float(ap.get("battery_mah", 850.0))
+    # Actual CAD battery capacity measured dynamically from Phase 1 mesh volume (~705 mAh Rev.2 vs ~381 mAh Rev.1)
+    bat_cad_mah = float(geom.get("bat_cad_mah", 381.0))
     T_bat_C = float(p4["battery_flight_max_C"])
+    is_rev2_pack = bat_cad_mah >= 600.0
 
-    # Temperature-dependent LiHV cell ESR (increases below 15C and above 75C due to SEI/gas degradation)
-    esr_25C_cell = 0.018 * (850.0 / bat_cad_mah)  # ~40 mOhm/cell for actual 381 mAh CAD pack
+    # Temperature-dependent LiHV cell ESR (60C graphene LiHV ~12 mOhm/cell @ 750 mAh vs 18 mOhm legacy)
+    esr_25C_cell = (0.012 * (750.0 / bat_cad_mah)) if is_rev2_pack else (0.018 * (850.0 / bat_cad_mah))
     temp_factor = 1.0 + 0.015 * max(0.0, 25.0 - T_bat_C) + 0.008 * max(0.0, T_bat_C - 65.0)
     r_bat_total = cells_s * esr_25C_cell * temp_factor
     v_oc = cells_s * 3.80  # 11.4 V nominal 3S LiHV
@@ -58,8 +59,25 @@ def run_phase06(spec: Dict[str, Any], store: MDAOStateStore) -> Dict[str, Any]:
 
     pyspice_ver = getattr(PySpice, "__version__", "1.5")
     pyspice_preview = str(circuit)
+    c_bulk_str = "470u" if is_rev2_pack else "220u"
+    i_ign_str = "6.0" if is_rev2_pack else "8.0"
+    buck_block = (
+        "Bbuck n_buck_in 0 V = (V(n_vbus) > 4.5) ? (3.30 - 0.005*(11.4 - V(n_vbus))) : (0.7*V(n_vbus))\n"
+        "Rbuck_out n_buck_in n_buck_l 0.020\n"
+        "Lbuck n_buck_l n_3v3 2.2u\n"
+        "C3v3 n_3v3 n_c3r 100u\n"
+        "Rc3r n_c3r 0 0.012\n"
+        "C3v3_hf n_3v3 0 22u"
+        if is_rev2_pack else
+        "Bbuck n_buck_in 0 V = (V(n_vbus) > 4.5) ? (3.30 - 0.006*(11.4 - V(n_vbus))) : (0.7*V(n_vbus))\n"
+        "Lbuck n_buck_in n_3v3 4.7u\n"
+        "Rlbuck n_buck_in n_3v3 80\n"
+        "C3v3 n_3v3 n_c3r 47u\n"
+        "Rc3r n_c3r 0 0.015\n"
+        "C3v3_hf n_3v3 0 1.0u"
+    )
     netlist = f"""* RikiGaku-AHIRU Phase 6 Coupled Power Tree + <10ms Hardware Failsafe (PySpice v{pyspice_ver} -> Ngspice)
-* Battery T_op={T_bat_C:.1f} C -> R_bat_total={r_bat_total*1e3:.1f} mOhm (CAD 381 mAh pack)
+* Battery T_op={T_bat_C:.1f} C -> R_bat_total={r_bat_total*1e3:.1f} mOhm (CAD {bat_cad_mah:.0f} mAh pack)
 
 * 1. 3S LiHV Battery + Wire Harness
 Vbat n_oc 0 DC {v_oc:.2f}
@@ -67,14 +85,14 @@ Rbat n_oc n_bterm {r_bat_total:.5f}
 Lwire n_bterm n_wire 85n
 Rwire n_wire n_vbus 0.012
 
-* Bulk decoupling (220uF polymer + 22uF MLCC)
-Cbulk n_vbus n_cb 220u
-Rcb n_cb 0 0.022
+* Bulk decoupling ({c_bulk_str} polymer + 22uF MLCC)
+Cbulk n_vbus n_cb {c_bulk_str}
+Rcb n_cb 0 0.018
 Cmlcc n_vbus 0 22u
 
-* 2. Starter ESC Cranking Inrush (22A, 2..10ms) + Igniter (8A, 2..14ms) + Servo Step (4A, 5..11ms)
+* 2. Starter ESC Cranking Inrush (22A, 2..10ms) + Staged Igniter ({i_ign_str}A, 2..14ms) + Servo Step (4A, 5..11ms)
 Istart n_vbus 0 PULSE(1.0 22.0 2m 0.15m 0.15m 8m 50m)
-Iign   n_vbus 0 PULSE(0.0 8.0 2m 0.2m 0.2m 12m 50m)
+Iign   n_vbus 0 PULSE(0.0 {i_ign_str} 2m 0.2m 0.2m 12m 50m)
 Iservo n_vbus 0 PULSE(0.4 4.0 5m 0.1m 0.1m 6m 50m)
 
 * 3. Fuel Pump 25 kHz PWM Inductive Load + Hardware Failsafe High-Side Cutoff Switch (trips at t=12.0 ms!)
@@ -94,12 +112,7 @@ Ssol n_sol_d 0 n_sctrl 0 SW_FS
 Vsctrl n_sctrl 0 PULSE(5.0 0.0 8.0m 2u 2u 15m 50m)
 
 * 5. Regulated 3.3V Synchronous Buck Rail for FADEC STM32H7 & 1000 Hz IMU
-Bbuck n_buck_in 0 V = (V(n_vbus) > 4.5) ? (3.30 - 0.006*(11.4 - V(n_vbus))) : (0.7*V(n_vbus))
-Lbuck n_buck_in n_3v3 4.7u
-Rlbuck n_buck_in n_3v3 80
-C3v3 n_3v3 n_c3r 47u
-Rc3r n_c3r 0 0.015
-C3v3_hf n_3v3 0 1.0u
+{buck_block}
 Ifadec n_3v3 0 PULSE(0.45 1.25 4m 30u 30u 6m 50m)
 
 .tran 25u 24m

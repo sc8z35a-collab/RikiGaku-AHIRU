@@ -309,10 +309,15 @@ def load_cad_assembly(html_path: Path, out_dir: Path) -> CADAssembly:
         I_wet += I_loc + m_kg * (r2 * np.eye(3) - np.outer(r_m, r_m))
 
         if lp.name in ("compressor", "shaft", "turbine"):
-            # Cylinder/disk polar inertia about Y-axis using vertex radial RMS
-            verts_l = np.asarray(lp.mesh_local.vertices, dtype=np.float64) * 1e-3
-            r_sq_mean = float(np.mean(verts_l[:, 0] ** 2 + verts_l[:, 2] ** 2))
-            rotor_Iyy += m_kg * r_sq_mean
+            # Exact solid 3D volume-integrated polar MOI about Y-axis when watertight (mm^5 * kg/m^3 * 1e-15 = kg*m^2)
+            if lp.mesh_local.is_watertight:
+                mat_rho = MATERIALS[lp.material_key].density
+                iyy_exact = abs(float(lp.mesh_local.moment_inertia[1, 1])) * mat_rho * 1e-15
+                rotor_Iyy += iyy_exact
+            else:
+                verts_l = np.asarray(lp.mesh_local.vertices, dtype=np.float64) * 1e-3
+                r_sq_mean = float(np.mean(verts_l[:, 0] ** 2 + verts_l[:, 2] ** 2))
+                rotor_Iyy += 0.5 * m_kg * r_sq_mean
 
     step_path = _export_cadquery_step(cad_dir, engine_x)
     scad_path = _export_openscad_wrapper(cad_dir, manifest["parts"])

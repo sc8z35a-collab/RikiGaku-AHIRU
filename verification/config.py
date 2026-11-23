@@ -24,26 +24,26 @@ MU_0 = 4.0 * 3.141592653589793e-7   # Vacuum permeability [H/m]
 EPS_0 = 8.8541878128e-12            # Vacuum permittivity [F/m]
 C0 = 299792458.0                    # Speed of light [m/s]
 
-# Claimed Design Specifications from README.md & index.html
+# Claimed Design Specifications from README.md & index.html (Rev.2 Flight-Ready)
 DESIGN_SPEC: Dict[str, Any] = {
-    "name": "RikiGaku-AHIRU (AHIRU-μTJ42V)",
+    "name": "RikiGaku-AHIRU Rev.2 (AHIRU-μTJ42V)",
     "envelope_mm": (180.0, 200.0, 100.0),      # (X length, Y height, Z width)
     "engine_axis_x_mm": -2.0,
-    "claimed_dry_mass_g": 480.0,
-    "claimed_wet_mass_g": 592.0,
+    "claimed_dry_mass_g": 485.0,
+    "claimed_wet_mass_g": 596.0,
     "claimed_fuel_vol_ml": 140.0,
     "claimed_fuel_mass_g": 112.0,
-    "claimed_weight_N": 5.81,
-    "claimed_max_thrust_N": 11.43,
-    "claimed_twr": 1.97,
-    "claimed_hover_throttle_pct": 51.0,
+    "claimed_weight_N": 5.85,
+    "claimed_max_thrust_N": 12.60,
+    "claimed_twr": 2.15,
+    "claimed_hover_throttle_pct": 46.5,
     "claimed_hover_endurance_min": 5.2,
-    # Operating point targets for 38mm-impeller vertical reverse-flow micro-turbojet
-    "design_rpm_max": 225000.0,                # Typical 38mm impeller microjet (Kolibri T15/JetCat P20 class)
+    # Rev.2 Operating point targets for 38mm-impeller vertical reverse-flow micro-turbojet
+    "design_rpm_max": 201000.0,                # Continuous rated max for PR>=2.80, DN<=1.71M, SF>=1.7, SPL@7m<=98 dB
     "design_rpm_idle": 68000.0,
     "design_rpm_ignition": 32000.0,
-    "design_pr_compressor": 3.2,
-    "design_tit_max_K": 1180.0,                # Inconel 718 uncooled continuous limit ~1220 K
+    "design_pr_compressor": 2.82,
+    "design_tit_max_K": 1050.0,                # Bleed-cooled Inconel 718 blisk continuous target (<=1220 K)
     "design_gimbal_max_deg": 14.0,             # ±14 deg 2-axis thrust vectoring
     "jet_a1_lhv_J_kg": 43.15e6,                # Jet-A1 Lower Heating Value [J/kg]
     "jet_a1_density_kg_m3": 800.0,
@@ -54,7 +54,7 @@ DESIGN_SPEC: Dict[str, Any] = {
     "battery_v_nom": 11.4,                     # 3S LiHV nominal (3.8 V/cell)
     "battery_v_max": 13.05,                    # 3S LiHV full (4.35 V/cell)
     "battery_v_min": 9.9,                      # 3S LiHV cutoff (3.3 V/cell)
-    "battery_cap_mah": 850.0,
+    "battery_cap_mah": 780.0,
     "battery_max_safe_temp_C": 60.0,
     "battery_runaway_temp_C": 130.0,
 }
@@ -144,7 +144,7 @@ MATERIALS: Dict[str, MaterialProps] = {
     ),
 }
 
-# Mapping of all 54 CAD parts extracted from index.html to aerospace materials
+# Mapping of all 58 CAD parts extracted from index.html (Rev.2) to aerospace materials
 PART_MATERIALS: Dict[str, str] = {
     "shellR": "PEEK_CFRP",
     "shellL": "PEEK_CFRP",
@@ -160,6 +160,7 @@ PART_MATERIALS: Dict[str, str] = {
     "footL": "PEEK_CFRP",
     "struts": "TI6AL4V",
     "frame": "AL7075_T6",
+    "thermalIsolators": "ZRO2_CERAMIC",
     "intakes": "PEEK_CFRP",
     "starterHousing": "AL7075_T6",
     "starterCoils": "COPPER",
@@ -168,16 +169,18 @@ PART_MATERIALS: Dict[str, str] = {
     "diffuser": "AL7075_T6",
     "bearingTopRaces": "BEARING_STEEL",
     "bearingTopBalls": "SI3N4",
-    "shaft": "TI6AL4V",
+    "shaft": "INCONEL718",
     "combustor": "INCONEL718",
     "vaporizers": "INCONEL718",
     "shroudR": "AEROGEL_CERAMIC",
     "goldLinerR": "GOLD_FOIL",
     "shroudL": "AEROGEL_CERAMIC",
     "goldLinerL": "GOLD_FOIL",
+    "thermalBaffle": "ZRO2_CERAMIC",
     "bearingBotRaces": "BEARING_STEEL",
     "bearingBotBalls": "SI3N4",
     "ngv": "INCONEL718",
+    "containmentRing": "INCONEL718",
     "turbine": "INCONEL718",
     "tailcone": "INCONEL718",
     "gimbal": "TI6AL4V",
@@ -190,6 +193,7 @@ PART_MATERIALS: Dict[str, str] = {
     "pumpGear1": "BRASS",
     "pumpGear2": "BRASS",
     "fuelLines": "COPPER",
+    "fuelBaffles": "NYLON_FUEL_TANK",
     "fadecPCB": "FR4_PCB",
     "fadecGold": "COPPER",
     "fadecChips": "FR4_PCB",

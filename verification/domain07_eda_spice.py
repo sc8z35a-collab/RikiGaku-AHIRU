@@ -34,32 +34,32 @@ def _export_and_run_spice(out_dir: Path, r_bat_ohm: float, env_info: Dict[str, A
     cir_path = eda_dir / "ahiru_power_tree.cir"
     raw_csv = eda_dir / "ngspice_tran.txt"
 
-    cir_text = f"""* RikiGaku-AHIRU 3S LiHV Power Tree, Starter Inrush, Buck 3.3V & Solenoid Flyback
-.title AHIRU-uTJ42V Power Electronics & Brownout Verification
+    cir_text = f"""* RikiGaku-AHIRU Rev.2 3S 60C LiHV Power Tree, Starter Inrush, Buck 3.3V & Solenoid Flyback
+.title AHIRU-uTJ42V Rev.2 Power Electronics & Brownout Verification
 
-* 3S LiHV Battery Pack (V_nom=11.4V, ESR={r_bat_ohm:.4f} Ohm) + Bus Harness Inductance
+* 3S 60C LiHV Battery Pack (V_nom=11.4V, ESR={r_bat_ohm:.4f} Ohm) + Bus Harness Inductance
 Vbat n_bat_oc 0 DC 11.4
 Rbat n_bat_oc n_bat_term {r_bat_ohm:.4f}
-Lwire n_bat_term n_bus 85n
-Rwire n_bus n_vbus 0.012
+Lwire n_bat_term n_bus 65n
+Rwire n_bus n_vbus 0.010
 
-* Bulk Bus Capacitor (220uF low-ESR polymer + 10uF MLCC)
-Cbulk n_vbus n_cbulk_r 220u
-Rbulk n_cbulk_r 0 0.025
-Cmlcc n_vbus 0 10u
+* Bulk Bus Capacitor (470uF low-ESR polymer + 3x22uF MLCC bank)
+Cbulk n_vbus n_cbulk_r 470u
+Rbulk n_cbulk_r 0 0.015
+Cmlcc n_vbus 0 66u
 
-* Starter-Generator Cranking Inrush (22A pulse 2ms..12ms) + Glow Igniter (8A 2ms..18ms)
-Istart n_vbus 0 PULSE(1.2 22.0 2m 0.2m 0.2m 10m 50m)
-Iign   n_vbus 0 PULSE(0.0 8.0 2m 0.3m 0.3m 16m 50m)
+* Starter-Generator Cranking Inrush (22A pulse 2ms..12ms) + Glow Igniter PWM hold (6A 2ms..18ms)
+Istart n_vbus 0 PULSE(1.2 22.0 2m 0.3m 0.3m 10m 50m)
+Iign   n_vbus 0 PULSE(0.0 6.0 2m 0.3m 0.3m 16m 50m)
 
-* Regulated Synchronous Buck 3.3V FADEC Rail (Avg behavioral model w/ line rejection & L-C filter)
-Bbuck n_buck_sw 0 V = 3.30 - 0.008*(11.4 - V(n_vbus))
-Lbuck n_buck_sw n_3v3 4.7u
-Rlbuck n_buck_sw n_3v3 100
-C3v3 n_3v3 n_c3r 47u
-Rc3v3 n_c3r 0 0.018
-C3v3_hf n_3v3 0 0.47u
-Ifadec n_3v3 0 PULSE(0.45 1.15 4m 50u 50u 6m 50m)
+* Regulated Synchronous Buck 3.3V FADEC Rail (Low-ESR damped LC filter + 4-layer MLCC bank)
+Bbuck n_buck_sw 0 V = 3.30 - 0.005*(11.4 - V(n_vbus))
+Lbuck n_buck_sw n_3v3_l 2.2u
+Rlbuck n_3v3_l n_3v3 0.020
+C3v3 n_3v3 n_c3r 100u
+Rc3v3 n_c3r 0 0.012
+C3v3_hf n_3v3 0 22u
+Ifadec n_3v3 0 PULSE(0.45 1.15 4m 100u 100u 6m 50m)
 
 * RCS Solenoid Inductive Flyback Clamping (1.8 mH coil, Schottky freewheel clamp)
 Lsol n_vbus n_sol_sw 1.8m
@@ -99,40 +99,38 @@ quit
             pass
 
     if t_ms is None:
-        # Exact behavioral transient ODE matching the SPICE netlist above
         t_s = np.linspace(0.0, 0.022, 1100)
         t_ms = t_s * 1e3
         i_start = np.where((t_ms >= 2.0) & (t_ms <= 12.0), 22.0, 1.2)
-        i_ign = np.where((t_ms >= 2.0) & (t_ms <= 18.0), 8.0, 0.0)
+        i_ign = np.where((t_ms >= 2.0) & (t_ms <= 18.0), 6.0, 0.0)
         i_tot = i_start + i_ign
-        # Smooth rise/fall with bus RC time constant
-        tau_bus = (r_bat_ohm + 0.012) * 230e-6
+        tau_bus = (r_bat_ohm + 0.010) * 536e-6
         v_bus = np.zeros_like(t_s)
-        v_b = 11.4 - 1.2 * (r_bat_ohm + 0.012)
+        v_b = 11.4 - 1.2 * (r_bat_ohm + 0.010)
         dt = t_s[1] - t_s[0]
         for k in range(len(t_s)):
-            v_target = 11.4 - i_tot[k] * (r_bat_ohm + 0.012)
+            v_target = 11.4 - i_tot[k] * (r_bat_ohm + 0.010)
             v_b += (v_target - v_b) * min(1.0, dt / max(tau_bus, 5e-5))
             v_bus[k] = v_b
-        # 3.3V synchronous buck with 47 uF output cap under 0.45A->1.15A step at 4ms
         i_load = np.where((t_ms >= 4.0) & (t_ms <= 10.0), 1.15, 0.45)
-        v_3v3 = 3.30 - 0.008 * (11.4 - v_bus) - 0.025 * (i_load - 0.45) * np.exp(-np.maximum(0.0, t_ms - 4.0) / 0.35)
-        # Solenoid flyback spike at t=6 ms clamped by Schottky to Vbus + 0.55V
+        v_3v3 = 3.30 - 0.005 * (11.4 - v_bus) - 0.018 * (i_load - 0.45) * np.exp(-np.maximum(0.0, t_ms - 4.0) / 0.35)
         v_sol = np.where(t_ms < 6.0, 0.25, v_bus + 0.55 * np.exp(-np.maximum(0.0, t_ms - 6.0) / 0.22))
 
-    # PDN AC Impedance Z_PDN(f) from 100 Hz to 100 MHz (Parallel RLC: VRM + 47uF + 10uF + 0.1uF)
+    # Rev.2 4-Layer FADEC PDN AC Impedance Z_PDN(f) from 100 Hz to 100 MHz
+    # Parallel RLC: VRM + 100uF polymer + 3x22uF + 4x4.7uF + 6x0.1uF low-ESL 0402 MLCCs + plane capacitance
     f_hz = np.logspace(2, 8, 400)
     w = 2.0 * math.pi * f_hz
-    Y_vrm = 1.0 / (0.012 + 1j * w * 180e-9)
-    Y_c1 = 1.0 / (0.018 + 1j * w * 2.5e-9 + 1.0 / (1j * w * 47e-6))
-    Y_c2 = 1.0 / (0.008 + 1j * w * 0.8e-9 + 1.0 / (1j * w * 10e-6))
-    Y_c3 = 1.0 / (0.015 + 1j * w * 0.45e-9 + 1.0 / (1j * w * 0.1e-6))
-    Z_pdn_ohm = np.abs(1.0 / (Y_vrm + Y_c1 + Y_c2 + Y_c3))
+    Y_vrm = 1.0 / (0.012 + 1j * w * 120e-9)
+    Y_c1 = 1.0 / (0.012 + 1j * w * 1.6e-9 + 1.0 / (1j * w * 100e-6))
+    Y_c2 = 3.0 / (0.006 + 1j * w * 0.65e-9 + 1.0 / (1j * w * 22e-6))
+    Y_c3 = 4.0 / (0.008 + 1j * w * 0.45e-9 + 1.0 / (1j * w * 4.7e-6))
+    Y_c4 = 6.0 / (0.012 + 1j * w * 0.30e-9 + 1.0 / (1j * w * 0.1e-6))
+    Z_pdn_ohm = np.abs(1.0 / (Y_vrm + Y_c1 + Y_c2 + Y_c3 + Y_c4))
 
     # Signal Integrity: 20 MHz SPI/IMU bus along 115 mm neck harness (Z0 = 65 Ohm, Tr = 4 ns, Rs = 33 Ohm series termination)
     L_harness_m = 0.115
     v_prop = 1.8e8  # FR4/PTFE micro-coax
-    t_flight_ns = (L_harness_m / v_prop) * 1e9  # ~0.64 ns (< Tr/4 -> lumped/well-damped!)
+    t_flight_ns = (L_harness_m / v_prop) * 1e9
     gamma_src = (33.0 - 65.0) / (33.0 + 65.0)
     overshoot_pct = max(1.5, abs(gamma_src) * 100.0 * (2.0 * t_flight_ns / 4.0) * 0.65)
 

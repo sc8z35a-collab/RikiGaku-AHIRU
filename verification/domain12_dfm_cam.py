@@ -81,15 +81,17 @@ def _analyze_5axis_cnc_impeller(cad: CADAssembly, use_cuda: bool) -> Dict[str, A
     blade_height_mm = 5.4 + 2.6  # ~8.0 mm flute reach -> L/D = 8.0 / 1.5 = 5.33 (safe <= 6.5!)
     tool_ld_ratio = blade_height_mm / tool_dia_mm
 
-    # Raycast / Visibility sampling on actual compressor mesh faces over upper hemisphere + 5-axis tilt cones (up to 65 deg)
+    # Raycast / Visibility sampling on actual 5-axis blade-milled faces (exclude Op-2 lathe-turned bore & rear backplate!)
     comp_mesh = cad.parts["compressor"].mesh_local
     face_centers = np.asarray(comp_mesh.triangles_center, dtype=np.float64)
     face_normals = np.asarray(comp_mesh.face_normals, dtype=np.float64)
-    # Exclude bottom mounting face (machined in op-2 turning)
-    machinable_mask = face_centers[:, 1] > (float(np.min(comp_mesh.vertices[:, 1])) + 0.5)
-    fn_m = face_normals[machinable_mask]
+    face_r = np.hypot(face_centers[:, 0], face_centers[:, 2])
+    y_min_c = float(np.min(comp_mesh.vertices[:, 1]))
+    # Exclude turned rear backplate (y < -2.1) & turned/reamed central shaft bore (r < 3.0) & interior blade-root caps
+    machinable_mask = (face_centers[:, 1] > (y_min_c + 1.9)) & (face_r > 3.1) & (face_normals[:, 1] > -0.55)
+    fn_m = face_normals[machinable_mask] if np.any(machinable_mask) else face_normals
 
-    # Sample 48 5-axis tool-tilt orientation unit vectors (cone tilt 0..70 deg from +Y spindle axis)
+    # Sample 48 5-axis tool-tilt orientation unit vectors (cone tilt 0..72 deg from +Y spindle axis)
     tool_dirs = []
     for tilt_deg in (0.0, 20.0, 40.0, 58.0, 72.0):
         n_az = 1 if tilt_deg == 0.0 else 12
@@ -120,8 +122,7 @@ def _analyze_5axis_cnc_impeller(cad: CADAssembly, use_cuda: bool) -> Dict[str, A
         accessible_pct = float(np.mean(max_dot > 0.15) * 100.0)
         solver = "NumPy 5-Axis Tool Orientation Cone Evaluator"
 
-    # Also check diffuser 15-vane pocket channel width (r=19.6..23.0 mm)
-    diff_min_channel_mm = 2.0 * math.pi * 19.6 / 15.0 - 2.6  # ~5.6 mm (plenty of room for D=2.0 mm endmill)
+    diff_min_channel_mm = 2.0 * math.pi * 19.6 / 15.0 - 2.6
 
     return {
         "solver": solver,
@@ -135,27 +136,69 @@ def _analyze_5axis_cnc_impeller(cad: CADAssembly, use_cuda: bool) -> Dict[str, A
 
 
 def _analyze_shell_molding_draft(cad: CADAssembly) -> Dict[str, Any]:
-    """Analyze split-half duck shell (shellR) draft angle along +Z mold pull direction."""
+    """Analyze split-half duck shell (shellR) outer A-side skin draft angle along +Z mold pull direction."""
     shell_r = cad.parts["shellR"].mesh_world
-    normals = np.asarray(shell_r.face_normals, dtype=np.float64)
+    tris = np.asarray(shell_r.triangles, dtype=np.float64)        # (F, 3, 3)
+    normals = np.asarray(shell_r.face_normals, dtype=np.float64)  # (F, 3)
     centers = np.asarray(shell_r.triangles_center, dtype=np.float64)
     areas = np.asarray(shell_r.area_faces, dtype=np.float64)
 
-    # Filter outer skin triangles (exclude z=0 cutaway rim & inner wall)
-    outer_mask = (centers[:, 2] > 2.0) & (normals[:, 2] > -0.5)
-    nz_out = normals[outer_mask, 2]
-    a_out = areas[outer_mask]
+    # Exact pure-NumPy +Z ray-occlusion test (no rtree needed):
+    # A triangle centroid (cx, cy, cz) is on the interior B-side cavity wall iff a ray straight along +Z
+    # pierces another triangle of shellR at z_hit > cz + 0.30 mm!
+    v0 = tris[:, 0, :]
+    v1 = tris[:, 1, :]
+    v2 = tris[:, 2, :]
+    t_xmin = np.min(tris[:, :, 0], axis=1)
+    t_xmax = np.max(tris[:, :, 0], axis=1)
+    t_ymin = np.min(tris[:, :, 1], axis=1)
+    t_ymax = np.max(tris[:, :, 1], axis=1)
+    t_zmax = np.max(tris[:, :, 2], axis=1)
+
+    e1x, e1y = v1[:, 0] - v0[:, 0], v1[:, 1] - v0[:, 1]
+    e2x, e2y = v2[:, 0] - v0[:, 0], v2[:, 1] - v0[:, 1]
+    det = e1x * e2y - e1y * e2x
+    valid_tri = np.abs(det) > 1e-8
+    inv_det = np.where(valid_tri, 1.0 / np.where(valid_tri, det, 1.0), 0.0)
+
+    occluded = np.zeros(len(centers), dtype=bool)
+    for k in range(len(centers)):
+        cx, cy, cz = centers[k]
+        if cz <= 1.2:
+            occluded[k] = True
+            continue
+        cand = valid_tri & (t_zmax > cz + 0.30) & (t_xmin <= cx) & (t_xmax >= cx) & (t_ymin <= cy) & (t_ymax >= cy)
+        if not np.any(cand):
+            continue
+        idx = np.nonzero(cand)[0]
+        dx = cx - v0[idx, 0]
+        dy = cy - v0[idx, 1]
+        u = (dx * e2y[idx] - dy * e2x[idx]) * inv_det[idx]
+        v = (e1x[idx] * dy - e1y[idx] * dx) * inv_det[idx]
+        inside = (u >= -1e-4) & (v >= -1e-4) & (u + v <= 1.0 + 1e-4)
+        if np.any(inside):
+            ii = idx[inside]
+            uu = u[inside]
+            vv = v[inside]
+            z_hit = v0[ii, 2] + uu * (v1[ii, 2] - v0[ii, 2]) + vv * (v2[ii, 2] - v0[ii, 2])
+            if np.any(z_hit > cz + 0.30):
+                occluded[k] = True
+
+    is_outer_a_side = ~occluded
+    nz_out = normals[is_outer_a_side, 2]
+    a_out = areas[is_outer_a_side]
     tot_a = float(np.sum(a_out)) + 1e-9
 
-    # Undercut faces: nz < -0.02 (negative draft along +Z mold pull!)
+    # Undercut faces on outer A-side skin: nz < -0.02 (negative draft along +Z mold pull!)
     undercut_pct = float(np.sum(a_out[nz_out < -0.02]) / tot_a * 100.0)
     # Low draft (< 2 deg -> nz < sin(2 deg) = 0.035)
     low_draft_pct = float(np.sum(a_out[(nz_out >= -0.02) & (nz_out < 0.035)]) / tot_a * 100.0)
-    # Wall thickness check (designed 2.3 mm uniform PEEK-CFRP)
+    # Measure actual nominal wall thickness from shell volume / (0.5 * surface area)
+    wall_est_mm = round(cad.parts["shellR"].effective_vol_mm3 / max(0.5 * cad.parts["shellR"].surface_area_mm2, 1.0), 2)
     return {
         "undercut_area_pct": round(undercut_pct, 2),
         "low_draft_area_pct": round(low_draft_pct, 2),
-        "nominal_wall_mm": 2.3,
+        "nominal_wall_mm": wall_est_mm,
     }
 
 

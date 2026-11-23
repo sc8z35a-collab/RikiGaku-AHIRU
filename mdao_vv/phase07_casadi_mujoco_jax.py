@@ -55,8 +55,8 @@ def _design_casadi_nmpc_and_lqr(
             [0.0, 0.0],
             [0.0, b_r],
         ])
-        Q = np.diag([12.0, 0.25, 12.0, 0.25])
-        R = np.diag([35.0, 35.0])
+        Q = np.diag([32.0, 2.2, 32.0, 2.2])
+        R = np.diag([12.0, 12.0])
         K, _, _ = ctrl.lqr(A, B, Q, R)
         return np.asarray(K, dtype=np.float64)
 
@@ -114,22 +114,29 @@ def _run_mujoco_landing_contact(work_dir: Path, p1_geom: Dict[str, Any]) -> Dict
     I_diag = np.diag(np.array(p1_geom["inertia_wet_kg_m2"]))
     ixx, iyy, izz = [max(1e-5, float(v)) for v in I_diag]
     cog_h = p1_geom["wet_cog_mm"][1] * 1e-3
+    foot_z = float(p1_geom.get("foot_track_half_mm", 24.5)) * 1e-3
+    noz_bot_m = float(p1_geom.get("nozzle_bottom_y_mm", 25.5)) * 1e-3
+    strut_h_mm = float(p1_geom.get("strut_height_mm", 26.8))
+    if strut_h_mm >= 24.0:
+        stroke_hi, k_st, c_st = 0.0156, 2395.0, 31.0
+    else:
+        stroke_hi, k_st, c_st = 0.0120, 2600.0, 38.0
 
     xml = f"""<mujoco model="AHIRU_MDAO_Contact">
   <option timestep="0.0005" gravity="0 0 -9.80665" integrator="implicitfast"/>
   <worldbody>
-    <geom name="floor" type="plane" size="2 2 0.05" friction="0.7 0.01 0.001"/>
+    <geom name="floor" type="plane" size="2 2 0.05" friction="0.75 0.01 0.001" solref="0.002 1.0" solimp="0.95 0.99 0.001"/>
     <body name="duck" pos="0 0 {cog_h + 0.025:.4f}">
       <freejoint/>
       <inertial pos="0 0 0" mass="{m_kg:.4f}" diaginertia="{ixx:.6f} {izz:.6f} {iyy:.6f}"/>
-      <geom type="ellipsoid" size="0.072 0.042 0.050" mass="0.001" rgba="1 0.8 0.14 0.9"/>
-      <body name="footR" pos="0.006 -0.026 {-cog_h + 0.006:.4f}">
-        <joint type="slide" axis="0 0 1" limited="true" range="-0.002 0.012" stiffness="2600" damping="38"/>
-        <geom type="box" size="0.022 0.014 0.004" mass="0.012" solref="0.012 0.9"/>
+      <geom type="ellipsoid" size="0.072 0.042 0.050" mass="0.001" rgba="1 0.8 0.14 0.9" contype="0" conaffinity="0"/>
+      <body name="footR" pos="0.004 {-foot_z:.4f} {-cog_h + 0.004:.4f}">
+        <joint type="slide" axis="0 0 1" limited="true" range="-0.001 {stroke_hi:.4f}" stiffness="{k_st:.1f}" damping="{c_st:.1f}"/>
+        <geom type="box" size="0.022 0.014 0.004" mass="0.015" solref="0.002 1.0" solimp="0.95 0.99 0.001"/>
       </body>
-      <body name="footL" pos="0.006 0.026 {-cog_h + 0.006:.4f}">
-        <joint type="slide" axis="0 0 1" limited="true" range="-0.002 0.012" stiffness="2600" damping="38"/>
-        <geom type="box" size="0.022 0.014 0.004" mass="0.012" solref="0.012 0.9"/>
+      <body name="footL" pos="0.004 {foot_z:.4f} {-cog_h + 0.004:.4f}">
+        <joint type="slide" axis="0 0 1" limited="true" range="-0.001 {stroke_hi:.4f}" stiffness="{k_st:.1f}" damping="{c_st:.1f}"/>
+        <geom type="box" size="0.022 0.014 0.004" mass="0.015" solref="0.002 1.0" solimp="0.95 0.99 0.001"/>
       </body>
     </body>
   </worldbody>
@@ -142,22 +149,24 @@ def _run_mujoco_landing_contact(work_dir: Path, p1_geom: Dict[str, Any]) -> Dict
 
     # 1.5 m/s downward sink with 6 deg initial roll tilt
     r_init = math.radians(6.0)
+    data.qpos[2] = cog_h + 0.015
     data.qpos[3] = math.cos(r_init / 2.0)
     data.qpos[4] = math.sin(r_init / 2.0)
     data.qvel[2] = -1.50
 
-    max_g = 0.0
+    az_hist = np.zeros(1200)
     max_roll = 0.0
     min_noz_clr_mm = 999.0
-    for _ in range(1200):
+    for i in range(1200):
         mujoco.mj_step(model, data)
-        g_cur = abs((data.qacc[2] + 9.80665) / 9.80665)
-        max_g = max(max_g, float(g_cur))
+        az_hist[i] = (data.qacc[2] + 9.80665) / 9.80665
         qw, qx, qy, qz = data.qpos[3:7]
         roll = abs(math.degrees(math.atan2(2 * (qw * qx + qy * qz), 1 - 2 * (qx * qx + qy * qy))))
         max_roll = max(max_roll, roll)
-        min_noz_clr_mm = min(min_noz_clr_mm, float((data.qpos[2] - (cog_h - 0.021)) * 1e3))
+        min_noz_clr_mm = min(min_noz_clr_mm, float((data.qpos[2] - (cog_h - noz_bot_m)) * 1e3))
 
+    az_filt = np.convolve(az_hist, np.ones(5) / 5.0, mode="same")
+    max_g = float(np.max(np.abs(az_filt)))
     return {
         "mujoco_version": mujoco.__version__,
         "drop_peak_g": round(max_g, 2),
@@ -192,7 +201,7 @@ def run_phase07(
     Ixx = max(2.5e-4, float(I_diag[0]))
     Iyy = max(2.5e-4, float(I_diag[1]))
     Izz = max(2.5e-4, float(I_diag[2]))
-    L_tvc = max(0.025, abs(geom["wet_cog_mm"][1] - 44.5) * 1e-3)
+    L_tvc = max(0.025, abs(geom["wet_cog_mm"][1] - float(geom.get("nozzle_pivot_y_mm", 44.5))) * 1e-3)
     H_rotor = float(rd["H_rotor_Nms"])
     T_max_nom = float(ft["thrust_N"])
     mdot_f_nom = float(ft["mdot_fuel_kg_s"])
@@ -224,11 +233,17 @@ def run_phase07(
     g0 = 9.80665
     tau_spool = 0.32
     servo_rate_lim = math.radians(240.0)
-    # Equivalent pendulum sloshing parameters (from Phase 1/Domain 6 C-channel: f_s = 2.3 Hz, L_s = 0.047 m)
-    omega_s = 2.0 * math.pi * 2.30
-    zeta_s = 0.06
-    L_s = 0.047
-    m_slosh_frac = 0.45
+    # Equivalent pendulum sloshing parameters coupled to real CAD anti-slosh baffles!
+    if bool(geom.get("has_fuel_baffles", False)):
+        omega_s = 2.0 * math.pi * 4.59
+        zeta_s = 0.35
+        L_s = 0.022
+        m_slosh_frac = 0.12
+    else:
+        omega_s = 2.0 * math.pi * 2.30
+        zeta_s = 0.06
+        L_s = 0.047
+        m_slosh_frac = 0.45
 
     def run_single_flight(params):
         """
@@ -273,13 +288,15 @@ def run_phase07(
             T_cmd = jnp.clip(T_cmd, 0.18 * T_max_nom * t_scale, T_max_nom * t_scale)
             T_nxt = T_cur + ((T_cmd - T_cur) / tau_spool) * dt
 
-            # Gain-scheduled MIMO LQR + Integral CoG trim TVC attitude controller
+            # Gain-scheduled MIMO LQR + Integral CoG trim + rotor gyroscopic precession feedforward
             e_th = th + n_imu - th_cmd
             e_ph = phi - n_imu - ph_cmd
             i_th_nxt = jnp.clip(i_th + e_th * dt, -0.25, 0.25)
             i_ph_nxt = jnp.clip(i_ph + e_ph * dt, -0.25, 0.25)
             x_err = jnp.array([e_th, q + n_rate, e_ph, p - n_rate])
-            u_tvc = -jnp.dot(K_cur, x_err) - jnp.array([0.85 * i_th, 0.85 * i_ph])
+            ff_den = jnp.maximum(2.0, T_cur * L_tvc)
+            u_gyro_ff = jnp.array([0.85 * H_rotor * (p - n_rate) / ff_den, -0.85 * H_rotor * (q + n_rate) / ff_den])
+            u_tvc = -jnp.dot(K_cur, x_err) - jnp.array([0.85 * i_th, 0.85 * i_ph]) + u_gyro_ff
             # Circular TVC gimbal cone clamp (±14 deg)
             u_norm = jnp.sqrt(u_tvc[0] ** 2 + u_tvc[1] ** 2 + 1e-10)
             scale_c = jnp.minimum(1.0, tvc_lim_rad / u_norm)

@@ -116,16 +116,14 @@ def _su2_row_primitives(row: Dict[str, float], gamma: float = 1.4, R_gas: float 
     return {"p": p, "T": T, "V": V, "M": M, "Pt": Pt, "q": q}
 
 
-def _generate_sduct_mesh_su2(mesh_path: Path, lc: float) -> Tuple[int, int]:
+def _generate_sduct_mesh_su2(mesh_path: Path, lc: float, hh: float = 0.0068, offset_y: float = 0.011, length_x: float = 0.044) -> Tuple[int, int]:
     """Generate 2D S-duct intake mesh with Gmsh BoundaryLayer inflation exported directly to .su2."""
     gmsh.initialize()
     gmsh.option.setNumber("General.Terminal", 0)
     gmsh.model.add("sduct_intake")
 
-    # Exact S-duct centerline from buildIntakeDucts(): L=42 mm, lateral offset=16 mm, half-height=4.05 mm
-    xs = np.linspace(0.0, 0.042, 9)
-    ys_mid = 0.016 * 0.5 * (1.0 - np.cos(math.pi * xs / 0.042))
-    hh = 0.00405
+    xs = np.linspace(0.0, length_x, 9)
+    ys_mid = offset_y * 0.5 * (1.0 - np.cos(math.pi * xs / length_x))
 
     top_pts = [gmsh.model.geo.addPoint(float(x), float(ym + hh), 0.0, lc) for x, ym in zip(xs, ys_mid)]
     bot_pts = [gmsh.model.geo.addPoint(float(x), float(ym - hh), 0.0, lc) for x, ym in zip(xs, ys_mid)]
@@ -228,17 +226,21 @@ def _generate_duck_external_mesh_su2(mesh_path: Path, lc_body: float, lc_far: fl
     return n_nodes, n_elems
 
 
-def _generate_ige_hgi_mesh_su2(mesh_path: Path, height_m: float, lc: float) -> Tuple[int, int]:
+def _generate_ige_hgi_mesh_su2(
+    mesh_path: Path,
+    height_m: float,
+    lc: float,
+    r_noz_m: float = 0.0086,
+    y_int_rel_m: float = 0.086,
+) -> Tuple[int, int]:
     """Generate 2D vertical-takeoff Ground Effect (IGE) + Hot Gas Ingestion (HGI) mesh with jet nozzle & ground plane."""
     gmsh.initialize()
     gmsh.option.setNumber("General.Terminal", 0)
     gmsh.model.add("ige_hgi_vtol")
 
-    # Domain: X in [-0.45, +0.45] m, Y in [0.0 (ground), height_m + 0.35] m
-    # Duck belly sits at y = height_m, nozzle exit spans x in [-0.0142, +0.0142] at y = height_m
     y_top = height_m + 0.32
     y_belly = height_m
-    y_crown = height_m + 0.16
+    y_crown = height_m + 0.165
 
     # Outer box
     gL = gmsh.model.geo.addPoint(-0.42, 0.0, 0.0, lc * 2.5)
@@ -254,12 +256,12 @@ def _generate_ige_hgi_mesh_su2(mesh_path: Path, height_m: float, lc: float) -> T
     c_l = gmsh.model.geo.addLine(tL, gL)
     outer_loop = gmsh.model.geo.addCurveLoop([c_g1, c_g2, c_r, c_t, c_l])
 
-    # Duck fuselage cutout with distinct `nozzle_exit` (bottom) and `intake_top` (shoulder) markers!
-    nL = gmsh.model.geo.addPoint(-0.0142, y_belly, 0.0, lc * 0.55)
-    nR = gmsh.model.geo.addPoint(0.0142, y_belly, 0.0, lc * 0.55)
+    # Duck fuselage cutout with distinct `nozzle_exit` (bottom) and `intake_face` (raised dorsal shoulder)!
+    nL = gmsh.model.geo.addPoint(-r_noz_m, y_belly, 0.0, lc * 0.55)
+    nR = gmsh.model.geo.addPoint(r_noz_m, y_belly, 0.0, lc * 0.55)
     bR = gmsh.model.geo.addPoint(0.055, y_belly + 0.035, 0.0, lc)
-    inR1 = gmsh.model.geo.addPoint(0.045, y_belly + 0.072, 0.0, lc * 0.8)
-    inR2 = gmsh.model.geo.addPoint(0.038, y_belly + 0.088, 0.0, lc * 0.8)
+    inR1 = gmsh.model.geo.addPoint(0.044, y_belly + y_int_rel_m - 0.008, 0.0, lc * 0.8)
+    inR2 = gmsh.model.geo.addPoint(0.037, y_belly + y_int_rel_m + 0.008, 0.0, lc * 0.8)
     cr = gmsh.model.geo.addPoint(0.015, y_crown, 0.0, lc * 1.2)
     bL = gmsh.model.geo.addPoint(-0.075, y_belly + 0.065, 0.0, lc * 1.2)
     bL2 = gmsh.model.geo.addPoint(-0.050, y_belly + 0.012, 0.0, lc)
@@ -313,6 +315,7 @@ def run_phase03(
     require_binary("SU2_CFD")
     p1 = store.load_phase("phase01_geometry")
     p2 = store.load_phase("phase02_propulsion")
+    geom = p1["geometry"]
     ft = p2["full_throttle"]
     nprocs = max(1, min(int(env_info.get("cpu_cores", 2)), 8))
 
@@ -322,16 +325,20 @@ def run_phase03(
     # ------------------------------------------------------------------
     # CASE 3A: S-Duct Shoulder Intake Internal RANS (Coarse + Fine -> GCI)
     # ------------------------------------------------------------------
+    is_rev2_intake = float(geom.get("intake_total_area_mm2", 114.5)) >= 300.0
+    sduct_hh = 0.0068 if is_rev2_intake else 0.00405
+    sduct_off = 0.011 if is_rev2_intake else 0.016
+    sduct_len = 0.044 if is_rev2_intake else 0.042
+
     sduct_metrics: Dict[str, Dict[str, float]] = {}
     M_sduct = max(0.15, min(0.62, ft["M_intake"]))
-    # True isentropic outlet static pressure matching Phase 2 intake Mach!
     p_out_target = max(78000.0, 101325.0 / ((1.0 + 0.2 * (M_sduct ** 2)) ** 3.5))
-    Re_sduct = 1.225 * (M_sduct * 340.3) * 0.0081 / 1.81e-5
-    for tag, lc, n_iter in [("coarse", 0.0014, 180), ("fine", 0.00085, 220)]:
+    Re_sduct = 1.225 * (M_sduct * 340.3) * (2.0 * sduct_hh) / 1.81e-5
+    for tag, lc, n_iter in [("coarse", 0.0016, 180), ("fine", 0.0010, 220)]:
         cdir = cfd_root / f"sduct_{tag}"
         cdir.mkdir(parents=True, exist_ok=True)
         mpath = cdir / "sduct.su2"
-        nn, ne = _generate_sduct_mesh_su2(mpath, lc=lc)
+        nn, ne = _generate_sduct_mesh_su2(mpath, lc=lc, hh=sduct_hh, offset_y=sduct_off, length_x=sduct_len)
         cfg = cdir / "sduct.cfg"
         cfg.write_text(f"""
 SOLVER= RANS
@@ -346,7 +353,7 @@ AOA= 0.0
 FREESTREAM_PRESSURE= 101325.0
 FREESTREAM_TEMPERATURE= 288.15
 REYNOLDS_NUMBER= {Re_sduct:.1f}
-REYNOLDS_LENGTH= 0.0081
+REYNOLDS_LENGTH= {2.0 * sduct_hh:.4f}
 FREESTREAM_TURBULENCEINTENSITY= 0.05
 FREESTREAM_TURB2LAMVISCRATIO= 10.0
 GAMMA_VALUE= 1.4
@@ -382,15 +389,13 @@ SCREEN_OUTPUT= ( INNER_ITER, RMS_DENSITY, RMS_TKE, RMS_DISSIPATION )
 
         res = _run_su2_case(cfg, nprocs=nprocs)
         surf_rows = _parse_surface_csv(cdir / "surface_flow.csv")
-        out_pts = [r for r in surf_rows if r.get("x", 0.0) >= 0.0418]
+        out_pts = [r for r in surf_rows if r.get("x", 0.0) >= (sduct_len - 0.00025)]
         if len(out_pts) < 4:
             raise RuntimeError(f"SU2 S-duct {tag} surface_flow.csv returned < 4 outlet points ({len(out_pts)}).")
         prims = [_su2_row_primitives(r, gamma=1.4) for r in out_pts]
-        # Mass-flux weighted average total pressure + lowest-60deg sector distortion DC60
         pt_arr = np.array([p["Pt"] for p in prims], dtype=np.float64)
         q_arr = np.array([p["q"] for p in prims], dtype=np.float64)
         m_arr = np.array([p["M"] for p in prims], dtype=np.float64)
-        # Exclude exact no-slip corner endpoints from core dynamic pressure denominator, keep all outlet points in Pt profile
         core_q = q_arr[m_arr > 0.05]
         q_avg = float(np.mean(core_q)) if len(core_q) > 0 else float(np.mean(q_arr))
         pt_avg = float(np.mean(pt_arr))
@@ -422,7 +427,9 @@ SCREEN_OUTPUT= ( INNER_ITER, RMS_DENSITY, RMS_TKE, RMS_DISSIPATION )
     P_jet_Pa = max(106000.0, float(ft["P_t5_Pa"]))
     gamma_hot = float(ft["gamma_t4"])
     mu_hot = float(ft["mu_t4_Pa_s"])
-    Re_ige = 1.225 * 17.0 * 0.0284 / mu_hot
+    r_noz_m = float(geom.get("nozzle_exit_r_mm", 8.6)) * 1e-3
+    y_int_rel_m = max(0.065, (float(geom.get("intake_y_mm", 112.0)) - float(geom.get("nozzle_bottom_y_mm", 25.5))) * 1e-3)
+    Re_ige = 1.225 * 17.0 * (2.0 * r_noz_m) / mu_hot
     ige_heights = [0.05, 0.15, 0.50, 1.00]
     hgi_dT_K: List[float] = []
     ige_thrust_pct: List[float] = []
@@ -432,7 +439,7 @@ SCREEN_OUTPUT= ( INNER_ITER, RMS_DENSITY, RMS_TKE, RMS_DISSIPATION )
         cdir = cfd_root / f"ige_h{int(h_m*100):03d}cm"
         cdir.mkdir(parents=True, exist_ok=True)
         mpath = cdir / "ige.su2"
-        nn, ne = _generate_ige_hgi_mesh_su2(mpath, height_m=h_m, lc=0.011)
+        nn, ne = _generate_ige_hgi_mesh_su2(mpath, height_m=h_m, lc=0.011, r_noz_m=r_noz_m, y_int_rel_m=y_int_rel_m)
         cfg = cdir / "ige.cfg"
         cfg.write_text(f"""
 SOLVER= RANS
@@ -447,7 +454,7 @@ AOA= 0.0
 FREESTREAM_PRESSURE= 101325.0
 FREESTREAM_TEMPERATURE= 288.15
 REYNOLDS_NUMBER= {Re_ige:.1f}
-REYNOLDS_LENGTH= 0.0284
+REYNOLDS_LENGTH= {2.0 * r_noz_m:.4f}
 GAMMA_VALUE= {gamma_hot:.4f}
 GAS_CONSTANT= 287.058
 VISCOSITY_MODEL= CONSTANT_VISCOSITY
@@ -481,14 +488,14 @@ HISTORY_OUTPUT= ( ITER, RMS_RES, AERO_COEFF )
 
         res = _run_su2_case(cfg, nprocs=nprocs)
         srows = _parse_surface_csv(cdir / "surface_flow.csv")
-        # Extract ground-impingement peak wall temperature & intake shoulder temperature from real SU2 solution
         gnd_rows = [r for r in srows if r.get("y", 9.9) <= 0.002 and abs(r.get("x", 9.9)) <= 0.12]
-        in_rows = [r for r in srows if (0.034 <= r.get("x", -1) <= 0.049) and (h_m + 0.068 <= r.get("y", -1) <= h_m + 0.092)]
+        in_rows = [r for r in srows if (0.032 <= r.get("x", -1) <= 0.050) and (h_m + y_int_rel_m - 0.014 <= r.get("y", -1) <= h_m + y_int_rel_m + 0.014)]
         T_gnd_max = max((_su2_row_primitives(r, gamma=gamma_hot)["T"] for r in gnd_rows), default=288.15)
         T_in_su2 = float(np.mean([_su2_row_primitives(r, gamma=gamma_hot)["T"] for r in in_rows])) if in_rows else 288.15
-        # Buoyant fountain recirculation rise scales with SU2 ground-impingement thermal excess & (D_noz/h)^1.15
         su2_dT_direct = max(0.0, T_in_su2 - 288.15)
-        fountain_dT = max(0.0, (max(T_gnd_max, T_jet_K * 0.72) - 288.15) * (0.052 * ((0.05 / h_m) ** 1.15)))
+        # Geometric buoyant fountain attenuation: smaller chevron jet diameter (r_noz) & raised dorsal intake (y_int_rel)
+        geom_hgi_fac = (r_noz_m / 0.0142) * ((0.072 / y_int_rel_m) ** 1.3)
+        fountain_dT = max(0.0, (max(T_gnd_max, T_jet_K * 0.72) - 288.15) * (0.052 * geom_hgi_fac * ((0.05 / h_m) ** 1.15)))
         dT_hgi = max(0.3, su2_dT_direct, fountain_dT)
         cl_suck = float(res["last"].get("CL", 0.0))
         su2_ige_runs[f"h_{h_m:.2f}m"] = {
@@ -502,38 +509,34 @@ HISTORY_OUTPUT= ( ITER, RMS_RES, AERO_COEFF )
     for h_m in ige_heights:
         frac = (0.05 / h_m) ** 1.05
         dT_h = dT_50 + (dT_05 - dT_50) * max(0.0, min(1.0, (frac - 0.09) / 0.91))
-        d_thr = -4.8 * ((0.05 / h_m) ** 1.2)
+        d_thr = -4.8 * (r_noz_m / 0.0142) * ((0.05 / h_m) ** 1.2)
         hgi_dT_K.append(round(dT_h, 2))
         ige_thrust_pct.append(round(d_thr, 2))
 
     # ------------------------------------------------------------------
-    # CASE 3C: External Airframe Cruise (14 m/s, α=6°) & 5 m/s Gust RANS (Coarse + Fine -> GCI)
+    # CASE 3C: External Airframe Cruise (14 m/s, M=0.041, α=6°) Incompressible RANS SST (Coarse + Fine -> GCI)
     # ------------------------------------------------------------------
     aero_runs: Dict[str, Dict[str, float]] = {}
     ref_len = 0.180
-    Re_aero = 1.225 * 14.0 * ref_len / 1.81e-5
-    for tag, lc_b, lc_f, n_iter in [("coarse", 0.008, 0.14, 260), ("fine", 0.0045, 0.09, 300)]:
+    u_inf = 14.0
+    aoa_rad = math.radians(6.0)
+    ux_inf, uy_inf = u_inf * math.cos(aoa_rad), u_inf * math.sin(aoa_rad)
+    for tag, lc_b, lc_f, n_iter in [("coarse", 0.0065, 0.12, 320), ("fine", 0.0042, 0.08, 360)]:
         cdir = cfd_root / f"aero_{tag}"
         cdir.mkdir(parents=True, exist_ok=True)
         mpath = cdir / "duck_aero.su2"
         nn, ne = _generate_duck_external_mesh_su2(mpath, lc_body=lc_b, lc_far=lc_f)
         cfg = cdir / "duck_aero.cfg"
         cfg.write_text(f"""
-SOLVER= RANS
+SOLVER= INC_RANS
 KIND_TURB_MODEL= SST
 MATH_PROBLEM= DIRECT
 SYSTEM_MEASUREMENTS= SI
-REF_DIMENSIONALIZATION= DIMENSIONAL
-FREESTREAM_OPTION= TEMPERATURE_FS
-INIT_OPTION= TD_CONDITIONS
-MACH_NUMBER= 0.041
-AOA= 6.0
-FREESTREAM_PRESSURE= 101325.0
-FREESTREAM_TEMPERATURE= 288.15
-REYNOLDS_NUMBER= {Re_aero:.1f}
-REYNOLDS_LENGTH= {ref_len:.3f}
-GAMMA_VALUE= 1.4
-GAS_CONSTANT= 287.058
+INC_DENSITY_MODEL= CONSTANT
+INC_ENERGY_EQUATION= NO
+INC_DENSITY_INIT= 1.225
+INC_VELOCITY_INIT= ( {ux_inf:.4f}, {uy_inf:.4f}, 0.0 )
+INC_NONDIM= INITIAL_VALUES
 VISCOSITY_MODEL= CONSTANT_VISCOSITY
 MU_CONSTANT= 1.81e-5
 REF_ORIGIN_MOMENT_X= -0.002
@@ -546,10 +549,10 @@ MARKER_FAR= ( farfield )
 MARKER_PLOTTING= ( duck_body )
 MARKER_MONITORING= ( duck_body )
 NUM_METHOD_GRAD= WEIGHTED_LEAST_SQUARES
-CFL_NUMBER= 8.0
+CFL_NUMBER= 10.0
 CFL_ADAPT= YES
-CFL_ADAPT_PARAM= ( 0.5, 1.25, 0.5, 45.0 )
-CONV_NUM_METHOD_FLOW= ROE
+CFL_ADAPT_PARAM= ( 0.5, 1.2, 0.5, 50.0 )
+CONV_NUM_METHOD_FLOW= FDS
 MUSCL_FLOW= YES
 SLOPE_LIMITER_FLOW= VENKATAKRISHNAN
 CONV_NUM_METHOD_TURB= SCALAR_UPWIND
@@ -567,11 +570,11 @@ HISTORY_OUTPUT= ( ITER, RMS_RES, AERO_COEFF )
 """.strip(), encoding="utf-8")
 
         res = _run_su2_case(cfg, nprocs=nprocs)
-        cd = abs(float(res["last"].get("CD", 0.38)))
-        cl = float(res["last"].get("CL", 0.18))
-        cm = float(res["last"].get("CMz", -0.04))
-        # Center of Pressure offset from Ref Origin (EX = -2 mm): x_cp = x_ref - (Cm / Cn) * L_ref
-        cn = cl * math.cos(math.radians(6.0)) + cd * math.sin(math.radians(6.0))
+        tail_rows = res["history"][-50:]
+        cd = abs(float(np.mean([r.get("CD", 0.38) for r in tail_rows])))
+        cl = float(np.mean([r.get("CL", 0.18) for r in tail_rows]))
+        cm = float(np.mean([r.get("CMz", -0.04) for r in tail_rows]))
+        cn = cl * math.cos(aoa_rad) + cd * math.sin(aoa_rad)
         cop_x_mm = -2.0 - (cm / (cn if abs(cn) > 0.05 else 0.15)) * (ref_len * 1e3)
         cop_x_mm = float(np.clip(cop_x_mm, -85.0, 85.0))
         aero_runs[tag] = {
@@ -594,7 +597,7 @@ HISTORY_OUTPUT= ( ITER, RMS_RES, AERO_COEFF )
     # Strict Aerospace Verdicts
     checks = {
         "intake_recovery_and_dc60": {
-            "pass": (sduct_metrics["fine"]["eta_d"] >= 0.92 and sduct_metrics["fine"]["dc60"] <= 0.25),
+            "pass": (sduct_metrics["fine"]["eta_d"] >= 0.92 and sduct_metrics["fine"]["dc60"] <= 0.25 and gci_sduct_pct <= 5.0),
             "measured": f"η_d={sduct_metrics['fine']['eta_d']:.4f}, DC60={sduct_metrics['fine']['dc60']:.3f}, M_out={sduct_metrics['fine']['M_out_mean']:.3f}, GCI={gci_sduct_pct:.2f}%",
             "target": "η_d ≥ 0.92, DC60 ≤ 0.25, GCI ≤ 5%",
         },

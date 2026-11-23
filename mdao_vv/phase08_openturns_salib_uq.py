@@ -36,7 +36,7 @@ def run_phase08(spec: Dict[str, Any], store: MDAOStateStore) -> Dict[str, Any]:
     nom_turb_clr = float(p1["geometry"]["turb_tip_clr_hot_mm"])
     nom_bat_soak = float(p4["battery_soak_max_C"])
     nom_sf_turb = float(p5["fea"]["sf_turb_100"])
-    nom_L_tvc = max(0.025, abs(p1["geometry"]["wet_cog_mm"][1] - 44.5) * 1e-3)
+    nom_L_tvc = max(0.025, abs(p1["geometry"]["wet_cog_mm"][1] - float(p1["geometry"].get("nozzle_pivot_y_mm", 44.5))) * 1e-3)
     nom_dx_cog = (p1["geometry"]["wet_cog_mm"][0] - p1["geometry"]["engine_axis_x_mm"]) * 1e-3
     req_thrust = float(spec["propulsion_spec"].get("max_thrust_N", 11.43))
 
