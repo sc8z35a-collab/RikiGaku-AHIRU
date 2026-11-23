@@ -193,9 +193,11 @@ def _gpu_3d_sph_fuel_sloshing(cad: CADAssembly, use_cuda: bool) -> Dict[str, Any
         import torch
         device = torch.device("cuda" if (use_cuda and torch.cuda.is_available()) else "cpu")
         use_gpu = device.type == "cuda"
-        n_p = 4096 if use_gpu else 512
+        n_p = 2048 if use_gpu else 512
         n_steps = 320 if use_gpu else 180
         dt = 0.002
+        sub_steps = 4
+        dt_sub = dt / sub_steps
 
         gen = torch.Generator(device=device).manual_seed(7)
         u_r = torch.rand(n_p, generator=gen, device=device)
@@ -219,9 +221,16 @@ def _gpu_3d_sph_fuel_sloshing(cad: CADAssembly, use_cuda: bool) -> Dict[str, Any
         pos = torch.stack([ex + r_p * torch.cos(ang_p), y_p, r_p * torch.sin(ang_p)], dim=1)
         vel = torch.zeros_like(pos)
         m_p = m_fuel_50 / n_p
-        h = 0.0042
-        c_s = 12.0
-        nu_visc = 0.018 if has_baffles else 0.008
+        # Mesh-consistent smoothing length h = 1.45 * dx (CFL-stable for both CPU 512 and GPU 4096)
+        vol_50 = m_fuel_50 / rho0
+        dx_p = (vol_50 / n_p) ** (1.0 / 3.0)
+        h = 1.45 * dx_p
+        # Weakly-compressible speed of sound c_s >= 10 * v_max (~0.2 m/s) -> Mach < 0.1, CFL = c_s*dt_sub/h < 0.25
+        c_s = 1.8
+        alpha_visc = 0.22 if has_baffles else 0.08
+        w_norm = 21.0 / (16.0 * math.pi * (h ** 3))
+        grad_w_norm = -105.0 / (16.0 * math.pi * (h ** 5))
+        cog_z_init = float(torch.mean(pos[:, 2]).item() * 1e3)
 
         t_arr = np.arange(n_steps) * dt
         f_lat_hist = np.zeros(n_steps)
@@ -235,59 +244,73 @@ def _gpu_3d_sph_fuel_sloshing(cad: CADAssembly, use_cuda: bool) -> Dict[str, Any
             t = step * dt
             az_ext = (0.5 * G0 if 0.04 <= t <= 0.24 else 0.0) + 0.15 * G0 * math.sin(2.0 * math.pi * 2.5 * t)
             ax_ext = 0.20 * G0 * math.cos(2.0 * math.pi * 2.0 * t)
-            acc = torch.tensor([ax_ext, -G0, az_ext], device=device).view(1, 3).expand(n_p, 3).clone()
+            f_wall_z_acc = 0.0
 
-            diff = pos.unsqueeze(1) - pos.unsqueeze(0)
-            dist2 = torch.sum(diff * diff, dim=-1) + 1e-10
-            dist = torch.sqrt(dist2)
-            mask = dist < h
+            for _ in range(sub_steps):
+                acc = torch.tensor([ax_ext, -G0, az_ext], device=device).view(1, 3).expand(n_p, 3).clone()
 
-            q = torch.clamp(1.0 - dist / h, min=0.0)
-            w = (q ** 3) * (1.0 + 3.0 * dist / h) * (mask.float())
-            rho = rho0 * 0.65 + (m_p / (h ** 3) * 8.5) * torch.sum(w, dim=1)
-            press = torch.clamp(c_s * c_s * (rho - rho0), min=0.0)
+                diff = pos.unsqueeze(1) - pos.unsqueeze(0)
+                dist2 = torch.sum(diff * diff, dim=-1) + 1e-12
+                dist = torch.sqrt(dist2)
+                mask = (dist < h) & (dist > 1e-6)
+                q = torch.clamp(dist / h, max=1.0)
+                one_m_q = 1.0 - q
 
-            grad_w = -12.0 * (q ** 2) / (h ** 4) * mask.float()
-            p_term = (press.unsqueeze(1) / (rho.unsqueeze(1) ** 2 + 1e-6) + press.unsqueeze(0) / (rho.unsqueeze(0) ** 2 + 1e-6))
-            f_press = -m_p * (p_term * grad_w).unsqueeze(-1) * (diff / dist.unsqueeze(-1))
-            dv = vel.unsqueeze(0) - vel.unsqueeze(1)
-            f_visc = nu_visc * (w.unsqueeze(-1) * dv)
-            acc = acc + torch.sum(f_press + f_visc, dim=1)
+                # 3D Wendland C2 kernel & normalized density summation
+                w = w_norm * (one_m_q ** 4) * (1.0 + 4.0 * q) * (dist < h).float()
+                rho = torch.clamp(m_p * torch.sum(w, dim=1), min=0.5 * rho0, max=1.5 * rho0)
+                # Tait weakly-compressible EOS (gamma=7 -> linearized B*(rho/rho0 - 1))
+                press = torch.clamp((c_s * c_s) * (rho - rho0), min=0.0)
 
-            # Perforated baffle drag damping slows tangential slosh jet across orifices
-            vel = (vel + acc * dt) * (0.965 if has_baffles else 0.996)
-            pos = pos + vel * dt
+                # Pressure gradient force (symmetric SPH formulation)
+                # grad_W = grad_w_norm * (1 - q)^3 * diff
+                dW_dr_over_r = grad_w_norm * (one_m_q ** 3) * mask.float()
+                p_term = (press.unsqueeze(1) / (rho.unsqueeze(1) ** 2) + press.unsqueeze(0) / (rho.unsqueeze(0) ** 2))
+                # Monaghan artificial viscosity (only for approaching pairs v_ij . r_ij < 0)
+                v_diff = vel.unsqueeze(1) - vel.unsqueeze(0)
+                vr_dot = torch.sum(v_diff * diff, dim=-1)
+                mu_ij = (h * vr_dot) / (dist2 + 0.01 * h * h)
+                rho_avg = 0.5 * (rho.unsqueeze(1) + rho.unsqueeze(0))
+                pi_ij = torch.where((vr_dot < 0.0) & mask, (-alpha_visc * c_s * mu_ij) / rho_avg, torch.zeros_like(mu_ij))
 
-            dx_e = pos[:, 0] - ex
-            dz_e = pos[:, 2]
-            rad = torch.sqrt(dx_e * dx_e + dz_e * dz_e + 1e-12)
-            ang = torch.atan2(dz_e, dx_e)
-            ang = torch.where(ang < 0, ang + 2.0 * math.pi, ang)
+                f_pair = -m_p * ((p_term + pi_ij) * dW_dr_over_r).unsqueeze(-1) * diff
+                acc = acc + torch.clamp(torch.sum(f_pair, dim=1), min=-250.0, max=250.0)
 
-            hit_rin = rad < r_min
-            hit_rout = rad > r_max
-            rad_c = torch.clamp(rad, r_min, r_max)
-            if has_baffles:
-                hit_a0 = ang < bay_lo
-                hit_a1 = ang > bay_hi
-                ang_c = torch.clamp(ang, bay_lo, bay_hi)
-            else:
-                hit_a0 = ang < a_start
-                hit_a1 = ang > a_end
-                ang_c = torch.clamp(ang, a_start, a_end)
-            hit_y0 = pos[:, 1] < y_min
-            hit_y1 = pos[:, 1] > y_max
-            y_c = torch.clamp(pos[:, 1], y_min, y_max)
+                # Perforated baffle orifice drag damping slows tangential slosh jet
+                drag_decay = 0.988 if has_baffles else 0.9985
+                vel = (vel + acc * dt_sub) * drag_decay
+                pos = pos + vel * dt_sub
 
-            new_pos = torch.stack([ex + rad_c * torch.cos(ang_c), y_c, rad_c * torch.sin(ang_c)], dim=1)
-            dpos = new_pos - pos
-            hit_any = hit_rin | hit_rout | hit_a0 | hit_a1 | hit_y0 | hit_y1
-            vel = torch.where(hit_any.unsqueeze(-1), vel * 0.35 + dpos / dt * 0.25, vel)
-            f_wall_z = float(-torch.sum(m_p * dpos[:, 2] / (dt * dt) * 0.35).item())
-            pos = new_pos
+                dx_e = pos[:, 0] - ex
+                dz_e = pos[:, 2]
+                rad = torch.sqrt(dx_e * dx_e + dz_e * dz_e + 1e-12)
+                ang = torch.atan2(dz_e, dx_e)
+                ang = torch.where(ang < 0, ang + 2.0 * math.pi, ang)
 
-            f_lat_hist[step] = abs(f_wall_z) + m_fuel_50 * abs(az_ext)
-            cog_z_hist[step] = float(torch.mean(pos[:, 2]).item() * 1e3)
+                hit_rin = rad < r_min
+                hit_rout = rad > r_max
+                rad_c = torch.clamp(rad, r_min, r_max)
+                if has_baffles:
+                    hit_a0 = ang < bay_lo
+                    hit_a1 = ang > bay_hi
+                    ang_c = torch.clamp(ang, bay_lo, bay_hi)
+                else:
+                    hit_a0 = ang < a_start
+                    hit_a1 = ang > a_end
+                    ang_c = torch.clamp(ang, a_start, a_end)
+                hit_y0 = pos[:, 1] < y_min
+                hit_y1 = pos[:, 1] > y_max
+                y_c = torch.clamp(pos[:, 1], y_min, y_max)
+
+                new_pos = torch.stack([ex + rad_c * torch.cos(ang_c), y_c, rad_c * torch.sin(ang_c)], dim=1)
+                dpos = new_pos - pos
+                hit_any = hit_rin | hit_rout | hit_a0 | hit_a1 | hit_y0 | hit_y1
+                vel = torch.where(hit_any.unsqueeze(-1), vel * 0.45 + (dpos / dt_sub) * 0.15, vel)
+                f_wall_z_acc += float(-torch.sum(m_p * dpos[:, 2] / (dt_sub * dt_sub) * 0.25).item()) / sub_steps
+                pos = new_pos
+
+            f_lat_hist[step] = abs(f_wall_z_acc) + m_fuel_50 * abs(az_ext)
+            cog_z_hist[step] = float(torch.mean(pos[:, 2]).item() * 1e3) - cog_z_init
 
             # Central UAT header collector tank maintains a pressurized wet bubble-free reserve around pickup
             if not has_baffles:
