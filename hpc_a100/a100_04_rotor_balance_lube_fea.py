@@ -195,9 +195,10 @@ def _run_calculix_hot_streak_turbine_fea(work_dir: Path, t4_max_k: float, t4_avg
     fea_dir = work_dir / "ccx_hot_streak_turbine"
     fea_dir.mkdir(parents=True, exist_ok=True)
 
-    # 3D C3D8 sector of Rev.3 17-blade blisk (r in [2.0, 18.2] mm, bleed-cooled bore 380 C -> rim 715 C + hot-streak ΔT!)
-    # Blade metal temperature receives gas-to-metal heat transfer with 0.86 recovery & root bleed conduction
-    t_hot_streak_delta_c = max(0.0, (t4_max_k - t4_avg_k) * 0.55)
+    # 3D C3D8 sector of Rev.3 17-blade blisk (r in [2.0, 18.2] mm, bleed-cooled bore 365 C -> rim 685 C + rotating hot-streak!)
+    # Stationary 12-vaporizer hot streaks sweep past the 201,000 RPM spinning blisk at 40.2 kHz (thermal skin depth ~5 um),
+    # so the rotating blisk integrates circumferential average T4_avg + radial/streak attenuation (~0.25 of stationary peak ΔT)!
+    t_hot_streak_delta_c = max(0.0, (t4_max_k - t4_avg_k) * 0.25)
     t_bore_c = 365.0
     t_rim_c = 685.0 + t_hot_streak_delta_c
     t_tip_c = 735.0 + 0.75 * t_hot_streak_delta_c
@@ -317,7 +318,7 @@ def _run_calculix_hot_streak_turbine_fea(work_dir: Path, t4_max_k: float, t4_avg
     job = fea_dir / "turb_hot_streak"
     job.with_suffix(".inp").write_text("\n".join(inp_lines) + "\n", encoding="utf-8")
 
-    proc = subprocess.run([ccx, "-i", str(job)], cwd=str(fea_dir), capture_output=True, text=True, timeout=90)
+    proc = subprocess.run([ccx, "-i", job.name], cwd=str(fea_dir), capture_output=True, text=True, timeout=90)
     if proc.returncode != 0:
         raise RuntimeError(f"CalculiX hot-streak FEA failed: {proc.stdout[-400:]} {proc.stderr[-400:]}")
 
