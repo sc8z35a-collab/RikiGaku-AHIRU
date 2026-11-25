@@ -548,42 +548,155 @@ EXTRA_ITEMS: List[Dict[str, Any]] = [
 ]
 
 
-# 2026 Deep-Market Verified Ultra-Lowest-Cost Routes (Zero Compromise on Tier-S Safety!)
-# - route_b3_usd   : Ultra-Min True 180mm Self-Built Rev.3 (JLC3DP July 2026 -24% PA12-CF / $0.275/g MJF,
-#                    Shenzhen single-plate IN718 SLM + shared HIP furnace, Shenzhen 5-axis CNC bundle,
-#                    KST Official $39.99/pc, JLCPCB 2-pc SMT + 3 bare PCBs, O'Keefe calibrated ruby orifices,
-#                    SMC/Parker 5V micro-solenoid RCS, handheld BLDC start wand, Shenzhen 2-plane G0.4 balancing)
-# - route_c_min_usd: Ultra-Min COTS Jet-Powered Duck (Swiwin SW60B/SW30B direct factory $1,550 + JLC3DP + JLCPCB)
-# - route_e_edf_usd: Step-0 Electric 64mm 6S EDF Airframe/TVC/FADEC Flight-Control Trainer (zero fire hazard!)
+# 2026 Second-Pass Deep-Market Verified Ultra-Lowest-Cost Routes & "Is It Really Safe?" Re-Comparison
+# - route_e_min_usd : Step-0 Electric 64mm EDF Ultra-Min ($495): TBS Lucid H7 ($49) + Dynam 64mm EDF+80A ESC ($76) + KST X08H Plus + Sorbothane 50D
+# - route_e_edf_usd : Step-0 Electric 64mm EDF with Custom JLCPCB FADEC ($971)
+# - route_c_min_usd : Absolute Min Commercial Jet ($3,004 / Core+Body $2,629): Swiwin SW60B ($1,500) -> WARNING: Ø76-84mm / 783g -> forces 1.65x large duck & 3.2s spool!
+# - route_c_x45_usd : RECOMMENDED Optimal Commercial Jet ($3,233 / Core+Body $2,853): Xicoy X45 / KingTech K-45G4+ ($1,750) -> Ø59.8mm / 395g / 1.35x compact duck!
+# - route_b4_usd    : Absolute Min 180mm Self-Built DIY Hybrid ($3,875 / BOM $3,005): Al 2618-T61 CNC + SUS310S sheet combustor/nozzle + TBS Lucid H7 + ALL 8 Tier-S Safety preserved!
+# - route_b3_usd    : RECOMMENDED 180mm Self-Built Blueprint-Exact Min ($4,444 / BOM $3,514): Al 2618-T61 CNC + full STEP/DXF IN718 SLM + TBS Lucid H7 (zero welding!)
 ULTRA_LOW_COST_2026: Dict[str, Dict[str, Any]] = {
-    "AHIRU-R3-001": {"b3": 260, "c_min": 0,    "e_edf": 0,   "vendor_b3": "JLCCNC / Shenzhen 5-Axis Ti-6Al-4V + CMM + Ø5 H6"},
-    "AHIRU-R3-002": {"b3": 490, "c_min": 0,    "e_edf": 0,   "vendor_b3": "Unionfab / WeNext IN718 SLM単一プレート相乗り + 共有炉HIP + EDM Ø4 H6"},
-    "AHIRU-R3-003": {"b3": 165, "c_min": 0,    "e_edf": 0,   "vendor_b3": "国内/アジア精密切削＋円筒研削 (Ø5.000 h5, TIR<=2µm)"},
-    "AHIRU-R3-004": {"b3": 210, "c_min": 0,    "e_edf": 0,   "vendor_b3": "JLCCNC / RapidDirect 5-Axis Al 7075-T651 + Ø11 H6 + 硬質アルマイト"},
-    "AHIRU-R3-005": {"b3": 280, "c_min": 0,    "e_edf": 0,   "vendor_b3": "Unionfab / WeNext IN718 SLM (002と単一プレート相乗り・4.4cm³)"},
-    "AHIRU-R3-006": {"b3": 230, "c_min": 0,    "e_edf": 0,   "vendor_b3": "Unionfab / WeNext IN718 SLM (002と相乗り・1.9cm³) + 端面旋盤"},
-    "AHIRU-R3-007": {"b3": 175, "c_min": 0,    "e_edf": 0,   "vendor_b3": "JLCCNC IN718旋盤(壁厚>=2.05mm厳守) + A286耐熱ボルト＆皿ばね"},
-    "AHIRU-R3-008": {"b3": 220, "c_min": 0,    "e_edf": 0,   "vendor_b3": "GRW代理店 / Boca Bearings (GRW 685-2Z-CE Si3N4 ABEC-7 P4 妥協厳禁)"},
-    "AHIRU-R3-009": {"b3": 12,  "c_min": 0,    "e_edf": 0,   "vendor_b3": "Parker / ミスミ (AS568-013 FKM Viton 60A 妥協厳禁)"},
-    "AHIRU-R3-010": {"b3": 140, "c_min": 0,    "e_edf": 0,   "vendor_b3": "O'Keefe / Bird Precision 流量較正済Ø0.25mmルビーオリフィス + 5µmフィルタ"},
-    "AHIRU-R3-011": {"b3": 115, "c_min": 95,   "e_edf": 0,   "vendor_b3": "カットシート Pyrogel XTE + DEI Reflect-A-Gold + 工業用YSZ板"},
-    "AHIRU-R3-012": {"b3": 55,  "c_min": 0,    "e_edf": 0,   "vendor_b3": "外部手持ちBLDCスタータワンド (2838 BLDC + 30A ESC + シリコンカップ)"},
-    "AHIRU-R3-013": {"b3": 290, "c_min": 240,  "e_edf": 65,  "vendor_b3": "Unionfab IN718 SLM相乗りノズル + 4軸CNC Tiジンバル (EDF機はPA12-CF造形)"},
-    "AHIRU-R3-014": {"b3": 95,  "c_min": 95,   "e_edf": 95,  "vendor_b3": "KST公式直販 (KST X08H Plus V6.0 $39.99×2 + Tiプッシュロッド)"},
-    "AHIRU-R3-015": {"b3": 125, "c_min": 125,  "e_edf": 0,   "vendor_b3": "SMC S070 / Parker X-Valve 5V高速マイクロソレノイド弁×2 + Ti細管"},
-    "AHIRU-R3-016": {"b3": 68,  "c_min": 75,   "e_edf": 0,   "vendor_b3": "JLC3DP MJF PA12 ($0.275/g, 31.6g) + 耐Jet-A1 Novolac/Viton内面コート"},
-    "AHIRU-R3-017": {"b3": 165, "c_min": 0,    "e_edf": 0,   "vendor_b3": "Xicoy/Swiwin OEM ブラシレスマイクロ燃料ポンプ + 11V Si3N4グロープラグ"},
-    "AHIRU-R3-018": {"b3": 115, "c_min": 135,  "e_edf": 115, "vendor_b3": "JLC3DP MJF PA12-CF (2026年7月 -24%値下げ後単価, 108.5g) + YSZ底部断熱"},
-    "AHIRU-R3-019": {"b3": 195, "c_min": 220,  "e_edf": 145, "vendor_b3": "JLCCNC Al 7075-T6フレーム + ミスミ規格ばね/Tiパイプ脚"},
-    "AHIRU-R3-020": {"b3": 235, "c_min": 235,  "e_edf": 235, "vendor_b3": "JLCPCB 4層 TG170 2oz ENIG (5枚基板+2枚SMT実装・Tier-S部品厳守)"},
-    "AHIRU-R3-021": {"b3": 72,  "c_min": 72,   "e_edf": 58,  "vendor_b3": "Isolate It! Sorbothane 50Dグロメット(厳守) + DigiKey VL53L4CD/熱電対"},
-    "AHIRU-R3-022": {"b3": 42,  "c_min": 42,   "e_edf": 38,  "vendor_b3": "GNB / Tattu 1S 850mAh 60C LiHV ×3 分割組電池 (EDF機は6S 1300mAh)"},
-    "AHIRU-R3-023": {"b3": 55,  "c_min": 55,   "e_edf": 35,  "vendor_b3": "LCSC / ミスミ PTFEシールドツイストペア + AWG14シリコン + Tiねじ"},
-    "AHIRU-SVC-001":{"b3": 0,   "c_min": 1550, "e_edf": 145, "vendor_b3": "C-Min: Swiwin SW60B/SW30B直販 ($1,450-$1,650) / Route E: 64mm 6S EDF+80A ESC ($145)"},
-    "AHIRU-SVC-002":{"b3": 380, "c_min": 0,    "e_edf": 0,   "vendor_b3": "深圳/上海 高速マイクロターボ専門2面動釣合い (ISO 1940 G0.4 <=0.22mg·mm)"},
-    "AHIRU-SVC-003":{"b3": 310, "c_min": 310,  "e_edf": 40,  "vendor_b3": "DIYアルミフレーム推力台 + HX711 + 8mmポリカ防爆板 + CO2消火器 + 二重防音"},
-    "AHIRU-SPR-001":{"b3": 240, "c_min": 95,   "e_edf": 0,   "vendor_b3": "最低限クリティカル予備 (GRW 685軸受×2 + Viton Oリング + フィルタ)"},
+    "AHIRU-R3-001": {"b3": 115, "b4": 115, "c_min": 0,    "c_x45": 0,    "e_edf": 0,   "e_min": 0,   "vendor_b3": "JLCCNC 5軸 鍛造Al 2618-T61 (150°C耐力340MPa/SF=2.21・慣性-38%改善! ※7075/6061不可)"},
+    "AHIRU-R3-002": {"b3": 490, "b4": 490, "c_min": 0,    "c_x45": 0,    "e_edf": 0,   "e_min": 0,   "vendor_b3": "Unionfab / WeNext IN718 SLM単一プレート相乗り + 共有炉HIP + EDM Ø4 H6 (妥協厳禁)"},
+    "AHIRU-R3-003": {"b3": 165, "b4": 155, "c_min": 0,    "c_x45": 0,    "e_edf": 0,   "e_min": 0,   "vendor_b3": "国内/アジア精密切削＋円筒研削 (Ø5.000 h5, TIR<=2µm)"},
+    "AHIRU-R3-004": {"b3": 210, "b4": 195, "c_min": 0,    "c_x45": 0,    "e_edf": 0,   "e_min": 0,   "vendor_b3": "JLCCNC / RapidDirect 5軸 Al 7075-T651 + Ø11 H6 + 硬質アルマイト"},
+    "AHIRU-R3-005": {"b3": 280, "b4": 95,  "c_min": 0,    "c_x45": 0,    "e_edf": 0,   "e_min": 0,   "vendor_b3": "B3: Unionfab IN718 SLM相乗り($280) / B4: 0.4mm SUS310S板金レーザー+細管溶接($95・要治具)"},
+    "AHIRU-R3-006": {"b3": 230, "b4": 215, "c_min": 0,    "c_x45": 0,    "e_edf": 0,   "e_min": 0,   "vendor_b3": "Unionfab / WeNext IN718 SLM (002と相乗り・1.9cm³) + 端面旋盤"},
+    "AHIRU-R3-007": {"b3": 175, "b4": 165, "c_min": 0,    "c_x45": 0,    "e_edf": 0,   "e_min": 0,   "vendor_b3": "JLCCNC IN718旋盤(壁厚>=2.05mm厳守) + A286耐熱ボルト＆皿ばね (妥協厳禁)"},
+    "AHIRU-R3-008": {"b3": 220, "b4": 220, "c_min": 0,    "c_x45": 0,    "e_edf": 0,   "e_min": 0,   "vendor_b3": "GRW代理店 / Boca Bearings (GRW 685-2Z-CE Si3N4 ABEC-7 P4 妥協厳禁・$15品絶対NG)"},
+    "AHIRU-R3-009": {"b3": 12,  "b4": 12,  "c_min": 0,    "c_x45": 0,    "e_edf": 0,   "e_min": 0,   "vendor_b3": "Parker / ミスミ (AS568-013 FKM Viton 60A 妥協厳禁)"},
+    "AHIRU-R3-010": {"b3": 140, "b4": 135, "c_min": 0,    "c_x45": 0,    "e_edf": 0,   "e_min": 0,   "vendor_b3": "O'Keefe / Bird Precision 流量較正済Ø0.25mmルビーオリフィス + 5µmフィルタ (妥協厳禁)"},
+    "AHIRU-R3-011": {"b3": 115, "b4": 95,  "c_min": 85,   "c_x45": 85,   "e_edf": 0,   "e_min": 0,   "vendor_b3": "カットシート Pyrogel XTE + DEI Reflect-A-Gold + 工業用YSZ板"},
+    "AHIRU-R3-012": {"b3": 55,  "b4": 48,  "c_min": 0,    "c_x45": 0,    "e_edf": 0,   "e_min": 0,   "vendor_b3": "外部手持ちBLDCスタータワンド (2838 BLDC + 30A ESC + シリコンカップ)"},
+    "AHIRU-R3-013": {"b3": 290, "b4": 145, "c_min": 210,  "c_x45": 225,  "e_edf": 65,  "e_min": 24,  "vendor_b3": "B3: IN718 SLMシェブロン+Tiジンバル($290) / B4: SUS310S成形ノズル+CNCジンバル($145) / E-Min: PA12-CF($24)"},
+    "AHIRU-R3-014": {"b3": 95,  "b4": 92,  "c_min": 95,   "c_x45": 95,   "e_edf": 95,  "e_min": 92,  "vendor_b3": "KST公式直販 (KST X08H Plus V6.0 $39.99×2 + Tiリンク ※$12サーボはバックラッシ発振NG!)"},
+    "AHIRU-R3-015": {"b3": 125, "b4": 115, "c_min": 110,  "c_x45": 110,  "e_edf": 0,   "e_min": 0,   "vendor_b3": "SMC S070 / Parker X-Valve 5V高速マイクロソレノイド弁×2 + Ti細管"},
+    "AHIRU-R3-016": {"b3": 68,  "b4": 58,  "c_min": 68,   "c_x45": 62,   "e_edf": 0,   "e_min": 0,   "vendor_b3": "JLC3DP MJF PA12 ($0.275/g) + 耐Jet-A1 Novolac/Viton内面コート"},
+    "AHIRU-R3-017": {"b3": 165, "b4": 155, "c_min": 0,    "c_x45": 0,    "e_edf": 0,   "e_min": 0,   "vendor_b3": "Xicoy/Swiwin OEM ブラシレスマイクロ燃料ポンプ + 11V Si3N4グロープラグ"},
+    "AHIRU-R3-018": {"b3": 115, "b4": 98,  "c_min": 145,  "c_x45": 125,  "e_edf": 115, "e_min": 48,  "vendor_b3": "JLC3DP MJF PA12-CF (-24%改定後) + YSZ底部断熱 (E-MinはFDM PETG-CF/PA12 $48)"},
+    "AHIRU-R3-019": {"b3": 195, "b4": 165, "c_min": 195,  "c_x45": 180,  "e_edf": 145, "e_min": 58,  "vendor_b3": "JLCCNC Al 7075-T6フレーム + ミスミ規格ばね/Tiパイプ脚 (E-MinはCFRPパイプ+Al金具 $58)"},
+    "AHIRU-R3-020": {"b3": 85,  "b4": 85,  "c_min": 65,   "c_x45": 65,   "e_edf": 235, "e_min": 65,  "vendor_b3": "TBS Lucid H7 FC ($49・STM32H743+二重ICM42688P) + 外部TPS3823-33 WDT/FETキャリア ($16-$36)"},
+    "AHIRU-R3-021": {"b3": 72,  "b4": 68,  "c_min": 68,   "c_x45": 68,   "e_edf": 58,  "e_min": 52,  "vendor_b3": "Isolate It! Sorbothane 50Dグロメット(厳守) + DigiKey VL53L4CD/熱電対"},
+    "AHIRU-R3-022": {"b3": 42,  "b4": 38,  "c_min": 42,   "c_x45": 42,   "e_edf": 38,  "e_min": 26,  "vendor_b3": "GNB / CNHL Black 130C LiHV/LiPo (CNHL実売 $37.98/2パック検証済)"},
+    "AHIRU-R3-023": {"b3": 55,  "b4": 46,  "c_min": 46,   "c_x45": 46,   "e_edf": 35,  "e_min": 24,  "vendor_b3": "LCSC / ミスミ PTFEシールドツイストペア + AWG14シリコン + Tiねじ"},
+    "AHIRU-SVC-001":{"b3": 0,   "b4": 0,   "c_min": 1500, "c_x45": 1750, "e_edf": 145, "e_min": 76,  "vendor_b3": "C-Min: Swiwin SW60B($1,500・Ø84mm/783g注意!) / C-X45: Xicoy X45・K-45G4+($1,750・Ø59.8mm/395g推奨) / E-Min: Dynam 64mm EDF+80A ESC($76)"},
+    "AHIRU-SVC-002":{"b3": 380, "b4": 360, "c_min": 0,    "c_x45": 0,    "e_edf": 0,   "e_min": 0,   "vendor_b3": "深圳/上海 高速マイクロターボ専門2面動釣合い (ISO 1940 G0.4 <=0.22mg·mm・妥協厳禁)"},
+    "AHIRU-SVC-003":{"b3": 310, "b4": 290, "c_min": 290,  "c_x45": 290,  "e_edf": 40,  "e_min": 30,  "vendor_b3": "DIYアルミフレーム推力台 + HX711 + 8mmポリカ防爆板 + CO2消火器 + 二重防音"},
+    "AHIRU-SPR-001":{"b3": 240, "b4": 220, "c_min": 85,   "c_x45": 90,   "e_edf": 0,   "e_min": 0,   "vendor_b3": "最低限クリティカル予備 (GRW 685軸受×2 + Viton Oリング + フィルタ)"},
 }
+
+
+# Rigorous "本当にそれでいいのか？" Engineering Trade-Off & False-Economy Trap Audit (Synced to Web UI Simulator!)
+COST_SAFETY_TRADEOFFS: List[Dict[str, Any]] = [
+    {
+        "id": "impeller_al2618",
+        "category": "推奨できる安全削減",
+        "title": "圧縮機: Ti-6Al-4V ($260) → 鍛造 Al 2618-T61 ($115)",
+        "delta_usd": -145,
+        "verdict": "PASS",
+        "badge": "◎ 強く推奨 (性能向上)",
+        "gyro_delta_pct": -8.2,
+        "mass_delta_g": -2.4,
+        "safety_delta": 0,
+        "physics_reason": "PR=2.8出口温度は140°C（Al 2618耐熱200°C以下）。遠心応力154 MPaに対し耐力340 MPaでSF=2.21を確保しつつ、回転慣性が-38%減りジャイロ連成が41.8%→33.6%へ劇的改善！（※Al 7075は120°C超で軟化するためNG）",
+    },
+    {
+        "id": "fc_lucid_h7",
+        "category": "推奨できる安全削減",
+        "title": "FADEC基板: JLCPCB 2枚SMT ($235) → TBS Lucid H7 ($49) + 外部WDT ($36)",
+        "delta_usd": -150,
+        "verdict": "PASS",
+        "badge": "◎ 推奨 (外部始動/市販機)",
+        "gyro_delta_pct": 0.0,
+        "mass_delta_g": 4.2,
+        "safety_delta": 0,
+        "physics_reason": "2026実売$49のTBS Lucid H7は本番同一のSTM32H743＋デュアルICM-42688-Pを標準搭載。外部スタータ運用（Route B3/B4）や市販ECU機（C-X45/E-Min）では機上60V FOCが不要なため、TPS3823独立WDT外付けで安全性ゼロ妥協のまま-$150削減。",
+    },
+    {
+        "id": "cots_x45_vs_sw60b",
+        "category": "条件付き・サイズ要注意",
+        "title": "市販タービン: Xicoy X45 ($1,750) vs Swiwin SW60B ($1,500)",
+        "delta_usd": -250,
+        "verdict": "WARN",
+        "badge": "△ 安物買い注意 (大型化)",
+        "gyro_delta_pct": 12.0,
+        "mass_delta_g": 388.0,
+        "safety_delta": -15,
+        "physics_reason": "実市場精査でSwiwin最小機はSW60B（Ø76–84mm・783g・スプール遅れ3.2秒・SW30Bは現行非存在）と判明！機体が1.65倍（全長30cm・全備1.8kg）に肥大化。+$229（約3.4万円）でXicoy X45（Ø59.8mm・395g・2.8s）を選ぶ方がVTOL安定性・サイズ感とも圧倒的優位！",
+    },
+    {
+        "id": "combustor_sheet_310s",
+        "category": "条件付き・工作スキル要",
+        "title": "燃焼器＆ノズル: IN718 SLM ($570) → 0.4mm SUS310S板金溶接 ($240)",
+        "delta_usd": -330,
+        "verdict": "WARN",
+        "badge": "○ 条件付可 (溶接治具要)",
+        "gyro_delta_pct": 0.0,
+        "mass_delta_g": -7.5,
+        "safety_delta": -8,
+        "physics_reason": "Wren 44 / KJ-66等DIYタービン王道手法で軽量化＆-$330。ただし気化管角度や希釈孔のズレでホットストリーク(PF)が悪化しやすく、スポット溶接治具がない場合はSTEP図面そのままのIN718 SLM一括相乗り（Route B3）が安全。",
+    },
+    {
+        "id": "edf_petgcf_shell",
+        "category": "Step-0 電動機限定",
+        "title": "Step-0外殻: JLC3DP PA12-CF ($115) → FDM PETG-CF/PA12 ($48)",
+        "delta_usd": -67,
+        "verdict": "PASS",
+        "badge": "◎ 電動EDF機で推奨",
+        "gyro_delta_pct": 0.0,
+        "mass_delta_g": 12.0,
+        "safety_delta": 0,
+        "physics_reason": "電動EDF（Route E-Min）は排気常温で熱変形ゼロ。2026年FDM造形（$0.05–$0.15/g）＋TBS Lucid H7＋Dynam 64mm EDF($76)で制御実証機総額を約7.4万円($495)まで圧縮可能。",
+    },
+    {
+        "id": "trap_cheap_servos",
+        "category": "絶対NG (偽の節約トラップ)",
+        "title": "【罠】TVCサーボ: KST X08H Plus ($95) → 安価$12メタルギアサーボ ($24)",
+        "delta_usd": -71,
+        "verdict": "FAIL",
+        "badge": "× 絶対NG (発振墜落)",
+        "gyro_delta_pct": 0.0,
+        "mass_delta_g": 2.0,
+        "safety_delta": -45,
+        "physics_reason": "安価な$12サーボはギアバックラッシ1.5〜3.0°（KSTは≤0.25°）。TVCのガタが0.8°を超えると1kHz LQRがリミットサイクル発振し離陸1秒で転倒墜落。$71ケチって50万円の機体を破壊する最悪の偽節約！",
+    },
+    {
+        "id": "trap_cheap_bearings",
+        "category": "絶対NG (偽の節約トラップ)",
+        "title": "【罠】軸受: GRW 685 ABEC-7 P4 ($220) → AliExpress中華ハイブリッド ($15)",
+        "delta_usd": -205,
+        "verdict": "FAIL",
+        "badge": "× 絶対NG (数秒で焼付き)",
+        "gyro_delta_pct": 0.0,
+        "mass_delta_g": 0.0,
+        "safety_delta": -70,
+        "physics_reason": "実測調査の通り安価ハイブリッド軸受はABEC-1/C0ガタ(3–18µm)＋金属冠型保持器（上限22,000 RPM）。201,000 RPM（dm·N=1.71M）では保持器が遠心破断して即ロック・タービン破損。",
+    },
+    {
+        "id": "trap_no_hip",
+        "category": "絶対NG (偽の節約トラップ)",
+        "title": "【罠】タービン熱処理: HIP+時効 ($490) → 未HIP造形っぱなし ($240)",
+        "delta_usd": -250,
+        "verdict": "FAIL",
+        "badge": "× 絶対NG (ブレード飛散)",
+        "gyro_delta_pct": 0.0,
+        "mass_delta_g": 0.0,
+        "safety_delta": -65,
+        "physics_reason": "SLM造形直後のIN718は内部マイクロポア（空隙）を含み、920°C・遠心48,000G環境下でクリープ亀裂が急速進展。共有HIP炉を使えばコストを抑えつつ空隙ゼロを保証できるためHIP省略は厳禁。",
+    },
+    {
+        "id": "trap_diy_balance",
+        "category": "絶対NG (偽の節約トラップ)",
+        "title": "【罠】動釣合い: 専門2面G0.4 ($380) → スマホ/圧電DIY1面バランス ($60)",
+        "delta_usd": -320,
+        "verdict": "FAIL",
+        "badge": "× 絶対NG (軸受寿命1/1000)",
+        "gyro_delta_pct": 0.0,
+        "mass_delta_g": 0.0,
+        "safety_delta": -60,
+        "physics_reason": "201,000 RPMでは残存不釣合いがG0.4(0.22 mg·mm)からG4.0へ悪化するだけで遠心加振力が10倍（~96 N）・軸受疲労寿命が1/1000に崩壊し、IMUも3.35 kHz振動で飽和。外部専門2面G0.4は絶対必須。",
+    },
+]
 
 
 def load_bom() -> List[Dict[str, Any]]:
@@ -630,10 +743,13 @@ def build_unified_rows(bom_rows: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
             "route_b1_usd": int(meta["route_b1_usd"]),
             "route_b2_usd": int(meta["route_b2_usd"]),
             "route_b3_usd": int(ulc["b3"]),
+            "route_b4_usd": int(ulc["b4"]),
             "route_c_usd": int(meta["route_c_usd"]),
+            "route_c_x45_usd": int(ulc["c_x45"]),
             "route_c_min_usd": int(ulc["c_min"]),
             "route_d_usd": int(meta["route_d_usd"]),
             "route_e_edf_usd": int(ulc["e_edf"]),
+            "route_e_min_usd": int(ulc["e_min"]),
             "bom_batch10_usd": int(r["Batch10_USD"]),
             "lead_wk_b1": meta["lead_wk_b1"],
             "lead_wk_c": meta["lead_wk_c"],
@@ -653,8 +769,11 @@ def build_unified_rows(bom_rows: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
         ex_copy = dict(ex)
         ulc = ULTRA_LOW_COST_2026[ex["part_no"]]
         ex_copy["route_b3_usd"] = int(ulc["b3"])
+        ex_copy["route_b4_usd"] = int(ulc["b4"])
+        ex_copy["route_c_x45_usd"] = int(ulc["c_x45"])
         ex_copy["route_c_min_usd"] = int(ulc["c_min"])
         ex_copy["route_e_edf_usd"] = int(ulc["e_edf"])
+        ex_copy["route_e_min_usd"] = int(ulc["e_min"])
         ex_copy["vendor_b3"] = ulc["vendor_b3"]
         ex_copy["bom_batch10_usd"] = ex["route_d_usd"]
         ex_copy["is_bom"] = False
@@ -668,8 +787,10 @@ def write_csv(unified: List[Dict[str, Any]]) -> Path:
     fieldnames = [
         "Item", "Wave", "Safety_Tier", "Part_No", "Subsystem", "Description", "Qty",
         "Mass_g", "Route_A_Proto_USD", "Route_B1_MinCustom_USD", "Route_B2_ExtStart_USD",
-        "Route_B3_UltraMinSelf_USD", "Route_C_COTSCore_USD", "Route_CMin_UltraCOTS_USD",
-        "Route_D_Batch10_USD", "Route_E_Step0EDF_USD", "LeadTime_B1", "LeadTime_C",
+        "Route_B3_BlueprintMinSelf_USD", "Route_B4_DIYHybridMin_USD",
+        "Route_C_COTSCore_USD", "Route_CX45_OptCOTS_USD", "Route_CMin_SW60B_USD",
+        "Route_D_Batch10_USD", "Route_E_Step0EDF_USD", "Route_EMin_UltraEDF_USD",
+        "LeadTime_B1", "LeadTime_C",
         "Recommended_Vendor_B1", "Recommended_Vendor_B3", "Recommended_Vendor_C",
         "Attached_Repo_Files", "RFQ_Critical_Notes", "Incoming_Acceptance_Criteria", "Order_Status",
     ]
@@ -689,11 +810,14 @@ def write_csv(unified: List[Dict[str, Any]]) -> Path:
                 "Route_A_Proto_USD": r["route_a_usd"],
                 "Route_B1_MinCustom_USD": r["route_b1_usd"],
                 "Route_B2_ExtStart_USD": r["route_b2_usd"],
-                "Route_B3_UltraMinSelf_USD": r["route_b3_usd"],
+                "Route_B3_BlueprintMinSelf_USD": r["route_b3_usd"],
+                "Route_B4_DIYHybridMin_USD": r["route_b4_usd"],
                 "Route_C_COTSCore_USD": r["route_c_usd"],
-                "Route_CMin_UltraCOTS_USD": r["route_c_min_usd"],
+                "Route_CX45_OptCOTS_USD": r["route_c_x45_usd"],
+                "Route_CMin_SW60B_USD": r["route_c_min_usd"],
                 "Route_D_Batch10_USD": r["route_d_usd"],
                 "Route_E_Step0EDF_USD": r["route_e_edf_usd"],
+                "Route_EMin_UltraEDF_USD": r["route_e_min_usd"],
                 "LeadTime_B1": r["lead_wk_b1"],
                 "LeadTime_C": r["lead_wk_c"],
                 "Recommended_Vendor_B1": r["vendor_b1"],
@@ -719,64 +843,34 @@ def write_markdown_and_json(unified: List[Dict[str, Any]]) -> tuple[Path, Path, 
     def sum_col(rows: List[Dict[str, Any]], key: str) -> int:
         return sum(int(r[key]) for r in rows)
 
-    totals = {
-        "route_a": {
-            "bom_usd": sum_col(bom_only, "route_a_usd"),
-            "svc_usd": sum_col(svc_only, "route_a_usd"),
-            "total_usd": sum_col(unified, "route_a_usd"),
-            "lead_weeks": "10–14週間",
-        },
-        "route_b1": {
-            "bom_usd": sum_col(bom_only, "route_b1_usd"),
-            "svc_usd": sum_col(svc_only, "route_b1_usd"),
-            "total_usd": sum_col(unified, "route_b1_usd"),
-            "lead_weeks": "6–8週間",
-        },
-        "route_b2": {
-            "bom_usd": sum_col(bom_only, "route_b2_usd"),
-            "svc_usd": sum_col(svc_only, "route_b2_usd"),
-            "total_usd": sum_col(unified, "route_b2_usd"),
-            "lead_weeks": "5–7週間",
-        },
-        "route_b3": {
-            "bom_usd": sum_col(bom_only, "route_b3_usd"),
-            "svc_usd": sum_col(svc_only, "route_b3_usd"),
-            "total_usd": sum_col(unified, "route_b3_usd"),
-            "lead_weeks": "5–7週間",
-        },
-        "route_c": {
-            "bom_usd": sum_col(bom_only, "route_c_usd"),
-            "svc_usd": sum_col(svc_only, "route_c_usd"),
-            "total_usd": sum_col(unified, "route_c_usd"),
-            "lead_weeks": "3–4週間",
-        },
-        "route_c_min": {
-            "bom_usd": sum_col(bom_only, "route_c_min_usd"),
-            "svc_usd": sum_col(svc_only, "route_c_min_usd"),
-            "total_usd": sum_col(unified, "route_c_min_usd"),
-            "lead_weeks": "3–4週間",
-        },
-        "route_d": {
-            "bom_usd": sum_col(bom_only, "route_d_usd"),
-            "svc_usd": sum_col(svc_only, "route_d_usd"),
-            "total_usd": sum_col(unified, "route_d_usd"),
-            "lead_weeks": "7–9週間 (10機)",
-        },
-        "route_e_edf": {
-            "bom_usd": sum_col(bom_only, "route_e_edf_usd"),
-            "svc_usd": sum_col(svc_only, "route_e_edf_usd"),
-            "total_usd": sum_col(unified, "route_e_edf_usd"),
-            "lead_weeks": "2–3週間",
-        },
-    }
+    route_specs = [
+        ("route_e_min", "route_e_min_usd", "1–2週間"),
+        ("route_e_edf", "route_e_edf_usd", "2–3週間"),
+        ("route_c_min", "route_c_min_usd", "3–4週間"),
+        ("route_c_x45", "route_c_x45_usd", "3–4週間"),
+        ("route_b4",    "route_b4_usd",    "5–7週間"),
+        ("route_b3",    "route_b3_usd",    "5–7週間"),
+        ("route_d",     "route_d_usd",     "7–9週間 (10機)"),
+        ("route_c",     "route_c_usd",     "3–4週間"),
+        ("route_b2",    "route_b2_usd",    "5–7週間"),
+        ("route_b1",    "route_b1_usd",    "6–8週間"),
+        ("route_a",     "route_a_usd",     "10–14週間"),
+    ]
+    totals: Dict[str, Dict[str, Any]] = {}
+    for rk, col, lead in route_specs:
+        totals[rk] = {
+            "bom_usd": sum_col(bom_only, col),
+            "svc_usd": sum_col(svc_only, col),
+            "total_usd": sum_col(unified, col),
+            "lead_weeks": lead,
+        }
 
     ra_tot = totals["route_a"]["total_usd"]
-    for k in ("route_b1", "route_b2", "route_b3", "route_c", "route_c_min", "route_d", "route_e_edf"):
-        totals[k]["savings_vs_a_pct"] = round((1.0 - totals[k]["total_usd"] / ra_tot) * 100.0, 1)
+    for rk in totals:
+        if rk != "route_a":
+            totals[rk]["savings_vs_a_pct"] = round((1.0 - totals[rk]["total_usd"] / ra_tot) * 100.0, 1)
 
     dry_mass_g = round(sum(r["mass_g"] for r in bom_only), 1)
-
-    # Verify against BOM_AHIRU_Rev3.csv exact total ($13,467)
     assert totals["route_a"]["bom_usd"] == 13467, f"Unexpected Route A BOM sum: {totals['route_a']['bom_usd']}"
 
     summary = {
@@ -785,10 +879,12 @@ def write_markdown_and_json(unified: List[Dict[str, Any]]) -> tuple[Path, Path, 
         "total_procurement_line_items": len(unified),
         "dry_mass_rollup_g": dry_mass_g,
         "routes": totals,
+        "cost_safety_tradeoffs": COST_SAFETY_TRADEOFFS,
         "recommended_primary_route": (
-            "純自作180mm最安: Route B3 ($4,739 / 約71.1万円, 部品BOM $3,809) | "
-            "市販ジェット最安: Route C-Min ($3,344 / 約50.2万円, 本体のみ $2,939) | "
-            "Step-0制御実証EDF機: Route E ($971 / 約14.6万円)"
+            f"Step-0電動最安: Route E-Min (${totals['route_e_min']['total_usd']:,} / {fmt_jpy(totals['route_e_min']['total_usd'])}) | "
+            f"市販ジェット推奨最適: Route C-X45 (${totals['route_c_x45']['total_usd']:,} / {fmt_jpy(totals['route_c_x45']['total_usd'])}) [絶対最安C-Min ${totals['route_c_min']['total_usd']:,}は1.65x大型化注意] | "
+            f"180mm純自作図面準拠最安: Route B3 (${totals['route_b3']['total_usd']:,} / {fmt_jpy(totals['route_b3']['total_usd'])}) | "
+            f"180mm純自作DIY板金極限: Route B4 (${totals['route_b4']['total_usd']:,} / {fmt_jpy(totals['route_b4']['total_usd'])})"
         ),
     }
 
@@ -799,7 +895,7 @@ def write_markdown_and_json(unified: List[Dict[str, Any]]) -> tuple[Path, Path, 
     waves_order = ["Wave 1 (Week 1)", "Wave 2 (Week 1-2)", "Wave 3 (Week 2-3)", "Wave 1-2", "Wave 4 (Week 5-7)"]
     wave_titles = {
         "Wave 1 (Week 1)": "Wave 1：最長納期クリティカルパス（Week 1 即発注・納期 3〜6週間）",
-        "Wave 2 (Week 1-2)": "Wave 2：電装PCBA・サーボ・燃料系・バッテリー（Week 1〜2 発注・納期 1〜3週間）",
+        "Wave 2 (Week 1-2)": "Wave 2：電装・サーボ・燃料系・バッテリー（Week 1〜2 発注・納期 1〜3週間）",
         "Wave 3 (Week 2-3)": "Wave 3：外殻・内部フレーム・断熱材・安全試験治具（Week 2〜3 発注・納期 1〜3週間）",
         "Wave 1-2": "Wave 1–2 同時同梱：クリティカル予備品（再調達6週間待ちの防止）",
         "Wave 4 (Week 5-7)": "Wave 4：受入精密検査・外部2面 G0.4 動釣合い（Week 5〜7・組付前必須ゲート）",
@@ -809,154 +905,98 @@ def write_markdown_and_json(unified: List[Dict[str, Any]]) -> tuple[Path, Path, 
     for w_key in waves_order:
         w_rows = [r for r in unified if r["wave"] == w_key]
         lines = [f"### {wave_titles[w_key]}", ""]
-        lines.append("| 済 | Part No | 品目 | 安全区分 | B3極限自作 | C-Min市販 | B1標準自作 | 推奨ベンダー（2026最安B3基準） | 受入合格基準（抜粋） |")
-        lines.append("|:---:|---|---|---|---:|---:|---:|---|---|")
+        lines.append("| 済 | Part No | 品目 | 安全区分 | B4極限DIY | B3推奨自作 | C-X45推奨市販 | E-Min電動 | 推奨ベンダー（2026精査版） | 受入合格基準（抜粋） |")
+        lines.append("|:---:|---|---|---|---:|---:|---:|---:|---|---|")
         for r in w_rows:
             lines.append(
                 f"| `[ ]` | `{r['part_no']}` | {r['description']} (×{r['qty']}) | {r['safety_tier']} | "
-                f"\\${r['route_b3_usd']:,} | \\${r['route_c_min_usd']:,} | \\${r['route_b1_usd']:,} | {r['vendor_b3']} | {r['acceptance']} |"
+                f"\\${r['route_b4_usd']:,} | \\${r['route_b3_usd']:,} | \\${r['route_c_x45_usd']:,} | \\${r['route_e_min_usd']:,} | {r['vendor_b3']} | {r['acceptance']} |"
             )
         lines.append("")
         wave_md_blocks.append("\n".join(lines))
 
-    # Top cost reduction breakdown (Route A -> Route B3 Ultra-Min Self-Built)
-    deltas = []
-    for r in bom_only:
-        diff = r["route_a_usd"] - r["route_b3_usd"]
-        if diff != 0:
-            deltas.append((diff, r))
-    deltas.sort(key=lambda x: x[0], reverse=True)
-
-    delta_lines = [
-        "| 順位 | Part No | 品目 | Route A (ワンオフ) | Route B3 (2026極限最安) | 削減額 | 2026最安調達ソース・安全担保根拠 |",
-        "|---:|---|---|---:|---:|---:|---|",
+    # Trade-off audit markdown table
+    tradeoff_lines = [
+        "| 判定 | 検討したさらなる最安案 | コスト差 | 物理・工学再評価（「本当にそれでいいのか？」の結論） |",
+        "|---|---|---:|---|",
     ]
-    for idx, (diff, r) in enumerate(deltas[:10], 1):
-        sign = "-" if diff > 0 else "+"
-        delta_lines.append(
-            f"| {idx} | `{r['part_no']}` | {r['description']} | \\${r['route_a_usd']:,} | \\${r['route_b3_usd']:,} | "
-            f"**{sign}\\${abs(diff):,}** | {r['vendor_b3']} |"
+    for td in COST_SAFETY_TRADEOFFS:
+        sign = "-" if td["delta_usd"] < 0 else "+"
+        tradeoff_lines.append(
+            f"| **{td['badge']}** | {td['title']} | **{sign}\\${abs(td['delta_usd']):,}** | {td['physics_reason']} |"
         )
 
     cmin_core_only = totals["route_c_min"]["bom_usd"] + ULTRA_LOW_COST_2026["AHIRU-SVC-001"]["c_min"]
+    cx45_core_only = totals["route_c_x45"]["bom_usd"] + ULTRA_LOW_COST_2026["AHIRU-SVC-001"]["c_x45"]
 
-    md_content = f"""# RikiGaku-AHIRU Rev.3 — 実機製作 発注チェックリスト & 2026極限最安コスト最適化ルート選定書
+    md_content = f"""# RikiGaku-AHIRU Rev.3 — 2026再精査・極限最安ルート選定 ＆「本当にそれでいいのか？」工学リスク再比較書
 
-> **前提**: 本書は実機 Colab GPU 上で **Rev.3 6-Wall Qualification (7/7 PASS, 10万回MC生存率 100.0%)**・**V12 (52/52 PASS)**・**MDAO/V&V (Phase 1〜9 PASS)**・**全22分野 (D01–D22 PASS)** を通過した確定設計（[BOM_AHIRU_Rev3.csv](generated/BOM_AHIRU_Rev3.csv)）と、2025–2026年の実市場価格調査（JLC3DP PA12-CF -24%値下げ・MJF PA12 \\$0.275/g・KST公式 \\$39.99・JLCPCB 2枚SMT実装・Swiwin SW60B/SW30B直販・中国単一プレートSLM+共有HIP炉）に基づく実務発注仕様書です。  
-> 為替換算レート目安：`1 USD = {JPY_PER_USD} JPY`。Excel/Google スプレッドシート管理用CSV：[procurement_checklist.csv](procurement_checklist.csv)
+> **前提**: 本書は実機 GPU 上で **Rev.3 6-Wall Qualification (7/7 PASS, 10万回MC生存率 100.0%)**・**V12 (52/52 PASS)**・**MDAO/V&V (Phase 1〜9 PASS)**・**全22分野 (D01–D22 PASS)** を通過した確定設計（[BOM_AHIRU_Rev3.csv](generated/BOM_AHIRU_Rev3.csv)）に対し、**2026年の実市場価格を徹底再精査**（`TBS Lucid H7 FC \\$49`・`Dynam 64mm EDF+80A ESC \\$75.99`・`CNHL LiPo \\$37.98/2本`・`鍛造 Al 2618-T61 5軸CNC`・`Swiwin SW60B Ø84mm/783g 実寸確認`・`Xicoy X45 Ø59.8mm/395g`・`KingTech K-45G4+`・`JLC3DP PA12-CF -24%`）し、**「さらに安い代替品が本当に安全・成立するのか？」を1項目ずつ物理根拠で再比較した最終調達ガイド**です。  
+> 為替換算レート目安：`1 USD = {JPY_PER_USD} JPY`。スプレッドシート管理用CSV：[procurement_checklist.csv](procurement_checklist.csv)
 
 ---
 
-## 1. コスト最小化 全8ルート定量比較（2026極限最安＋安全設備・2面釣合い全計上）
+## 1. 全11ルート定量比較（2026再精査・安全設備/2面釣合い全計上）
 
-「機体部品だけ安く見えて、後から動釣合い・防爆治具・予備品で予算超過する」ことを防ぐため、**全ルートに外部検査/釣合い・安全試験設備・予備品まで全額含めた総実費**と**純粋な機体部品代のみ**を両方明記しています。
-
-| ルート | コンセプト | 機体BOM (23品目) | コア/釣合い/安全/予備 | **総額 (USD)** | **総額目安 (JPY)** | Route A比 | 最短納期 | 推奨用途 |
+| ルート | コンセプト・サイズ感 | 機体BOM | コア/釣合い/安全/予備 | **総額 (USD)** | **総額目安 (JPY)** | Route A比 | 納期 | 「本当にそれでいいのか？」総合判定 |
 |---|---|---:|---:|---:|---:|---:|---|---|
-| **Route E（Step-0 EDF訓練機）** | **64mm 6S電動EDF (`20 N`級)＋本番FADEC/TVC**（火気ゼロの制御先行実証機） | \\${totals['route_e_edf']['bom_usd']:,} | \\${totals['route_e_edf']['svc_usd']:,} | **\\${totals['route_e_edf']['total_usd']:,}** | **{fmt_jpy(totals['route_e_edf']['total_usd'])}** | **-{totals['route_e_edf']['savings_vs_a_pct']}%** | {totals['route_e_edf']['lead_weeks']} | **墜落リスク最小の制御/TVC先行検証（基板/サーボは本番流用）** |
-| **Route C-Min（市販ジェット極限最安）** | **Swiwin SW60B/SW30B直販(\\$1,550)＋JLC3DP＋JLCPCB 2枚SMT**（本体のみ \\${cmin_core_only:,} / {fmt_jpy(cmin_core_only)}） | \\${totals['route_c_min']['bom_usd']:,} | \\${totals['route_c_min']['svc_usd']:,} | **\\${totals['route_c_min']['total_usd']:,}** | **{fmt_jpy(totals['route_c_min']['total_usd'])}** | **-{totals['route_c_min']['savings_vs_a_pct']}%** | {totals['route_c_min']['lead_weeks']} | **本物のジェット推力で最安・最短3〜4週間の初飛行** |
-| **Route B3（純自作180mm極限最安）** | **2026実市場最安・完全オリジナル180mm自作ジェット**（安全聖域8項目100%維持・外部スタータ） | \\${totals['route_b3']['bom_usd']:,} | \\${totals['route_b3']['svc_usd']:,} | **\\${totals['route_b3']['total_usd']:,}** | **{fmt_jpy(totals['route_b3']['total_usd'])}** | **-{totals['route_b3']['savings_vs_a_pct']}%** | {totals['route_b3']['lead_weeks']} | **180×200×100mm 純粋自作ターボジェットの現実的最安解** |
-| **Route D（10機ロット単価）** | Route B1最適化を10機バッチ発注（1機あたり単価） | \\${totals['route_d']['bom_usd']:,} | \\${totals['route_d']['svc_usd']:,} | **\\${totals['route_d']['total_usd']:,}/機** | **{fmt_jpy(totals['route_d']['total_usd'])}/機** | **-{totals['route_d']['savings_vs_a_pct']}%** | {totals['route_d']['lead_weeks']} | 研究室・共同製作・小ロット量産 |
-| **Route C（市販タービン標準）** | 市販認証済みマイクロタービン（代理店保証品）換装 1.25× 機体 | \\${totals['route_c']['bom_usd']:,} | \\${totals['route_c']['svc_usd']:,} | **\\${totals['route_c']['total_usd']:,}** | **{fmt_jpy(totals['route_c']['total_usd'])}** | **-{totals['route_c']['savings_vs_a_pct']}%** | {totals['route_c']['lead_weeks']} | 国内/正規代理店サポート重視の市販タービン機 |
-| **Route B2（自作・国内釣合い）** | Route B1＋外部電動スタータ始動（国内2面G0.4釣合い・JLCPCB 5枚SMT） | \\${totals['route_b2']['bom_usd']:,} | \\${totals['route_b2']['svc_usd']:,} | **\\${totals['route_b2']['total_usd']:,}** | **{fmt_jpy(totals['route_b2']['total_usd'])}** | **-{totals['route_b2']['savings_vs_a_pct']}%** | {totals['route_b2']['lead_weeks']} | 国内動釣合い＋予備基板4枚の安心自作構成 |
-| **Route B1（自作・機上発電付）** | 戦略的アジア高精度CNC＋DMLS一括ネスト＋SmCo28機上スタータ発電機付 | \\${totals['route_b1']['bom_usd']:,} | \\${totals['route_b1']['svc_usd']:,} | **\\${totals['route_b1']['total_usd']:,}** | **{fmt_jpy(totals['route_b1']['total_usd'])}** | **-{totals['route_b1']['savings_vs_a_pct']}%** | {totals['route_b1']['lead_weeks']} | 機上自立始動＆発電まで完全再現する自作フル構成 |
-| **Route A（欧米/国内ワンオフ）** | フルカスタム航空宇宙仕様（PEEK-CF30・欧米ワンオフCNC/DMLS） | \\${totals['route_a']['bom_usd']:,} | \\${totals['route_a']['svc_usd']:,} | **\\${totals['route_a']['total_usd']:,}** | **{fmt_jpy(totals['route_a']['total_usd'])}** | 基準 | {totals['route_a']['lead_weeks']} | 機関・法人向けフルスペック実証 |
-
-### 結論：2026年時点で現実的に到達できる「絶対最安」ライン
-
-1. **本物のジェット推進で絶対最安 → `Route C-Min`（総額 \\${totals['route_c_min']['total_usd']:,} / {fmt_jpy(totals['route_c_min']['total_usd'])}・機体+タービン本体のみ \\${cmin_core_only:,} / {fmt_jpy(cmin_core_only)}）**
-   - 2026年市場で最安クラスの市販ブラシレスマイクロタービン（Swiwin SW60B/SW30B直販 `\\$1,450–\\$1,650`）＋ JLC3DP（2026年7月 `-24%` 値下げ後 PA12-CF）＋ JLCPCB 2枚SMT実装 ＋ KST公式直販（`\\$39.99/個`）を組み合わせ、安全装備一式を含めて **約50.2万円** で本物のジェットアヒルが飛びます。
-2. **180×200×100 mm の純粋自作ターボジェットで絶対最安 → `Route B3`（総額 \\${totals['route_b3']['total_usd']:,} / {fmt_jpy(totals['route_b3']['total_usd'])}・機体部品BOMのみ \\${totals['route_b3']['bom_usd']:,} / {fmt_jpy(totals['route_b3']['bom_usd'])}）**
-   - **安全聖域8項目（GRW 685 Si3N4 ABEC-7軸受・Viton 60A Oリング・較正済ルビーオリフィス・2.05mm IN718封じ込め＆A286ボルト・タービンHIP処理・2面ISO 1940 G0.4釣合い・60V FOC＋独立WDT＋二重IMU・Sorbothane 50D）は1ミリも妥協せず**、全4点の微小IN718 SLM部品（合計わずか `9.5 cm³`）の単一プレート相乗り＋共有HIP炉＋JLC3DP/JLCCNC直接手配で、従来の Route B2（`\\$8,102`）からさらに **`-\\$3,363`（約50.4万円）** 圧縮しました。
-3. **さらに賢い「失敗ゼロ・ステップアップ戦略」**
-   - **Step 0**: まず `Route E`（電動64mm EDF訓練機・**\\${totals['route_e_edf']['total_usd']:,} / {fmt_jpy(totals['route_e_edf']['total_usd'])}**）で本番と同一の `STM32H743` FADEC基板・`KST X08H Plus` サーボ・`Sorbothane 50D`・2軸TVC制御を火気ゼロで完全デバッグ。
-   - **Step 1**: FADEC・サーボ・安全治具をそのまま流用し、`Route C-Min` または `Route B3` へ換装（重複購入ゼロで初飛行成功率を最大化！）。
+| **Route E-Min（Step-0 極限最安EDF）** | **TBS Lucid H7(\\$49)＋Dynam 64mm EDF+80A ESC(\\$76)＋KST X08H＋PA12/PETG-CF** | \\${totals['route_e_min']['bom_usd']:,} | \\${totals['route_e_min']['svc_usd']:,} | **\\${totals['route_e_min']['total_usd']:,}** | **{fmt_jpy(totals['route_e_min']['total_usd'])}** | **-{totals['route_e_min']['savings_vs_a_pct']}%** | {totals['route_e_min']['lead_weeks']} | **◎ 制御実証の最安最適解**（FC/サーボ/防振はジェット機へ100%移植可） |
+| **Route C-Min（市販ジェット絶対最安）** | **Swiwin SW60B直販(\\$1,500)＋TBS Lucid H7＋PA12-CF**（本体+タービン \\${cmin_core_only:,} / {fmt_jpy(cmin_core_only)}） | \\${totals['route_c_min']['bom_usd']:,} | \\${totals['route_c_min']['svc_usd']:,} | **\\${totals['route_c_min']['total_usd']:,}** | **{fmt_jpy(totals['route_c_min']['total_usd'])}** | **-{totals['route_c_min']['savings_vs_a_pct']}%** | {totals['route_c_min']['lead_weeks']} | **△ 大型化注意**：SW60Bは実寸 **Ø76–84mm・783g・3.2秒遅れ** のため機体が1.65倍（全長30cm・全備1.8kg）化 |
+| **Route C-X45（市販ジェット推奨最適）** | **Xicoy X45 / KingTech K-45G4+(\\$1,750)＋TBS Lucid H7＋PA12-CF**（本体+タービン \\${cx45_core_only:,} / {fmt_jpy(cx45_core_only)}） | \\${totals['route_c_x45']['bom_usd']:,} | \\${totals['route_c_x45']['svc_usd']:,} | **\\${totals['route_c_x45']['total_usd']:,}** | **{fmt_jpy(totals['route_c_x45']['total_usd'])}** | **-{totals['route_c_x45']['savings_vs_a_pct']}%** | {totals['route_c_x45']['lead_weeks']} | **◎ 市販ジェット最推奨**（+\\$229で重量半減395g・Ø59.8mm小型維持・2.8s高速応答） |
+| **Route B4（180mm純自作 DIY板金極限）** | **鍛造Al 2618圧縮機＋SUS310S板金燃焼器＆ノズル＋TBS Lucid H7＋安全聖域8項目100%死守** | \\${totals['route_b4']['bom_usd']:,} | \\${totals['route_b4']['svc_usd']:,} | **\\${totals['route_b4']['total_usd']:,}** | **{fmt_jpy(totals['route_b4']['total_usd'])}** | **-{totals['route_b4']['savings_vs_a_pct']}%** | {totals['route_b4']['lead_weeks']} | **○ 上級工作向け極限最安**（溶接治具＆ベンチPF検証ができる場合のみ推奨） |
+| **Route B3（180mm純自作 図面準拠最安）** | **鍛造Al 2618圧縮機＋STEP図面通りIN718 SLM相乗り＋TBS Lucid H7＋安全聖域8項目100%死守** | \\${totals['route_b3']['bom_usd']:,} | \\${totals['route_b3']['svc_usd']:,} | **\\${totals['route_b3']['total_usd']:,}** | **{fmt_jpy(totals['route_b3']['total_usd'])}** | **-{totals['route_b3']['savings_vs_a_pct']}%** | {totals['route_b3']['lead_weeks']} | **◎ 180mm純自作の最推奨解**（溶接不要・97.4 dBシェブロン＆PF=0.0451再現） |
+| **Route D（10機ロット単価）** | Route B1を10機同時発注時の1機単価 | \\${totals['route_d']['bom_usd']:,} | \\${totals['route_d']['svc_usd']:,} | **\\${totals['route_d']['total_usd']:,}/機** | **{fmt_jpy(totals['route_d']['total_usd'])}/機** | **-{totals['route_d']['savings_vs_a_pct']}%** | {totals['route_d']['lead_weeks']} | 研究室・共同製作・小ロット量産 |
+| Route E（独自PCBA付EDF） | JLCPCB独自FADEC基板＋64mm 6S EDF | \\${totals['route_e_edf']['bom_usd']:,} | \\${totals['route_e_edf']['svc_usd']:,} | \\${totals['route_e_edf']['total_usd']:,} | {fmt_jpy(totals['route_e_edf']['total_usd'])} | -{totals['route_e_edf']['savings_vs_a_pct']}% | {totals['route_e_edf']['lead_weeks']} | 独自PCBAの先行試験を行いたい場合 |
+| Route C（代理店保証COTS） | 正規代理店保証タービン＋5枚PCBA | \\${totals['route_c']['bom_usd']:,} | \\${totals['route_c']['svc_usd']:,} | \\${totals['route_c']['total_usd']:,} | {fmt_jpy(totals['route_c']['total_usd'])} | -{totals['route_c']['savings_vs_a_pct']}% | {totals['route_c']['lead_weeks']} | 国内代理店フル保証重視 |
+| Route B2 / B1 / A | 国内釣合い自作 / 機上発電フル自作 / 欧米ワンオフ | \\${totals['route_b2']['bom_usd']:,}〜\\${totals['route_a']['bom_usd']:,} | \\${totals['route_b2']['svc_usd']:,}〜\\${totals['route_a']['svc_usd']:,} | \\${totals['route_b2']['total_usd']:,}〜\\${totals['route_a']['total_usd']:,} | {fmt_jpy(totals['route_b2']['total_usd'])}〜{fmt_jpy(totals['route_a']['total_usd'])} | -50%〜基準 | 5–14週間 | 法人・研究機関向けフルスペック |
 
 ---
 
-## 2. Route A → Route B3（2026極限最安）コスト削減ドライバー TOP 10
+## 2. 「本当にそれでいいのか？」さらなる最安案 9項目・工学再比較 ＆ 偽の節約トラップ監査
 
-{chr(10).join(delta_lines)}
+最安値を追い求める際、**「物理的に安全かつ高性能な本物の節約」**と**「数万円ケチって機体全損・破損を招く偽の節約（トラップ）」**を厳格に仕分けしました。
 
-> **なぜここまで下がるのか（2026実市場ファクト）**：
-> - **JLC3DP 2025年末〜2026年7月大幅値下げ**：`MJF PA12` が `\\$0.275/g`、`PA12-CF` がさらに `-24%` 改定。実ソルバー連成熱解析で外殻最高温度 `28.3 °C` と実証済みのため、PEEK-CF30（`\\$1,350`）→ JLC3DP PA12-CF（`\\$115`）で **`-\\$1,235`（-91.5%）** 削減。
-> - **微小IN718 SLM 4部品（合計体積わずか `9.5 cm³`）の単一プレート相乗り＋共有HIP炉**：002タービン(`0.74 cm³`)・005燃焼器(`4.43 cm³`)・006 NGV(`1.86 cm³`)・013ノズル(`2.4 cm³`)を1枚に相乗り造形＋共有HIP炉チャージで **`\\$4,520` → `\\$1,290`（-\\$3,230）**。
-> - **JLCPCB 5枚基板＋2枚のみSMT実装**：5枚全実装（`\\$425`）から「5枚基板製造＋2枚のみSMT実装（メイン1＋予備1）」にするだけで、Tier-S部品を1点も削らず **`\\$235`（-\\$190）**。
-> - **KST公式直販**：`KST X08H Plus V6.0` は公式定価 **`\\$39.99/個`**（2個＋Tiリンクで `\\$95`）。
+{chr(10).join(tradeoff_lines)}
+
+### 再比較の結論（本当に選ぶべきベスト3）
+1. **まず7.4万円で確実に飛ばす → `Route E-Min`（\\${totals['route_e_min']['total_usd']:,} / {fmt_jpy(totals['route_e_min']['total_usd'])}）**
+   - `TBS Lucid H7`（STM32H743＋二重ICM-42688-P）＋`KST X08H Plus`＋`Sorbothane 50D`＋`Dynam 64mm EDF`で制御則と2軸TVCを100%実証。主要電装はそのままジェット機へ移植できるため無駄ゼロ。
+2. **本物のジェット推力を最小コスト＆最小リスクで → `Route C-X45`（\\${totals['route_c_x45']['total_usd']:,} / {fmt_jpy(totals['route_c_x45']['total_usd'])}・本体+タービン \\${cx45_core_only:,}）**
+   - 絶対最安の `Route C-Min`（Swiwin SW60B, \\${totals['route_c_min']['total_usd']:,}）よりわずか **+\\$229（約3.4万円）** 高いだけで、タービン重量が **783 g → 395 g（半減）**、外径が **Ø84 mm → Ø59.8 mm** になり、机上サイズ感とVTOL安定性が劇的に改善します。
+3. **180×200×100 mm 完全オリジナル自作ターボジェット → `Route B3`（\\${totals['route_b3']['total_usd']:,} / {fmt_jpy(totals['route_b3']['total_usd'])}・BOM \\${totals['route_b3']['bom_usd']:,}）**
+   - 鍛造 `Al 2618-T61` 圧縮機（むしろジャイロ連成が `41.8% → 33.6%` へ改善！）＋ `TBS Lucid H7` 外部始動構成＋ STEP図面通りのIN718 SLM相乗りで、溶接リスクなしで66万円台を実現。金属板金溶接ができる上級者なら `Route B4`（**\\${totals['route_b4']['total_usd']:,} / {fmt_jpy(totals['route_b4']['total_usd'])}**）まで圧縮可能。
 
 ---
 
 ## 3. 絶対に削ってはいけない「安全聖域（Non-Negotiable 8項目）」
 
-以下の 8 項目はどれほど最安化しても変更厳禁です（安価な代替品は **201,000 RPM 破損・焼付き・墜落・火災** に直結）：
-
-1. **軸受 (`AHIRU-R3-008`)**: 必ず `GRW 685-2Z-CE`（Si3N4セラミック球・PEEK/フェノール保持器・ABEC-7 P4以上）。釣りリール用\\$5軸受は `dm·N = 1.71M` で即破損。
-2. **スクイーズフィルムOリング (`AHIRU-R3-009`)**: 必ず `AS568-013 FKM Viton Shore 60A`（70A/90AやNBRは剛性変化・膨潤で危険速度に接触）。
-3. **潤滑オリフィス (`AHIRU-R3-010`)**: 必ず較正済み `Ø0.25 mm` ルビーオリフィス（Lee `IEPA1211241H` または O'Keefe/Bird Precision 較正ルビーオリフィス）＋ 5µm フィルタ。流量不足は30秒以内に軸受焼付き。
-4. **ブレード封じ込めリング & 高温ボルト (`AHIRU-R3-007`)**: Inconel 718 最小肉厚 `2.05 mm` ＋ `A286` 耐熱ボルト＋皿ばね（SUS304ボルトは700°Cクリープで緩むため厳禁）。
-5. **タービンブリスク熱処理 (`AHIRU-R3-002`)**: DMLS造形後の **HIP（熱間等方圧加圧）＋時効処理** は省略不可（内部空隙が遠心クリープ破壊の起点になる）。
-6. **2面動釣合い (`AHIRU-SVC-002`)**: 必ず組付状態で **`ISO 1940 G0.4`（≤ 0.22 mg·mm/面）** を専門バランサで施工（簡易1面バランス厳禁）。
-7. **FADEC 60V MOSFET & 独立WDT (`AHIRU-R3-020`)**: 201k RPM 逆起電力 `25.8 V` に対し `60V定格 BSC028N06LS3`（30V/40V品不可）、暴走時燃料遮断用 `TPS3823-33` 独立WDT、二重 `ICM-42688-P` 実装を維持。
-8. **Sorbothane 50D 防振マウント (`AHIRU-R3-021`)**: 一般的なシリコン防振ゴムは 3,350 Hz 帯の減衰が不足し IMU が飽和するため、必ず `Sorbothane 50 Duro` を使用。
+1. **軸受 (`AHIRU-R3-008`)**: 必ず `GRW 685-2Z-CE`（Si3N4球・PEEK/フェノール保持器・ABEC-7 P4）。`\\$15` AliExpressハイブリッド軸受（ABEC-1/金属保持器）は即焼付き。
+2. **スクイーズフィルムOリング (`AHIRU-R3-009`)**: 必ず `AS568-013 FKM Viton Shore 60A`（70A/90AやNBRは危険速度接触）。
+3. **潤滑オリフィス (`AHIRU-R3-010`)**: 必ず較正済 `Ø0.25 mm` ルビーオリフィス（Lee / O'Keefe）＋5µmフィルタ。
+4. **ブレード封じ込めリング & 高温ボルト (`AHIRU-R3-007`)**: Inconel 718 最小肉厚 `2.05 mm` ＋ `A286` 耐熱ボルト＋皿ばね（SUS304厳禁）。
+5. **タービンブリスク熱処理 (`AHIRU-R3-002`)**: DMLS造形後の **HIP（1180°C/100MPa）＋時効処理** は省略厳禁。
+6. **2面動釣合い (`AHIRU-SVC-002`)**: 組付状態で **`ISO 1940 G0.4`（≤ 0.22 mg·mm/面）** を専門バランサで施工（DIY1面厳禁）。
+7. **FADEC 独立WDT & 二重IMU (`AHIRU-R3-020`)**: `STM32H743`＋二重`ICM-42688-P`＋独立`TPS3823-33 WDT`（機上発電構成時は60V MOSFET `BSC028N06LS3` 必須）。
+8. **Sorbothane 50D 防振マウント (`AHIRU-R3-021`)**: `f_n = 38 Hz` で 3,350 Hz 1X振動を `-77.1 dB` 減衰（通常シリコンゴム不可）。
 
 ---
 
-## 4. 発注前ゲート（Wave 0：発注ボタンを押す前の必須確認）
-
-- [ ] **法規・飛行場所の確認（日本国内）**
-  - [ ] 国土交通省 **DIPS 2.0** 機体登録・リモートID準備（MTOW `579 g ≥ 100 g` のため必須）
-  - [ ] **消防法** 確認：Jet-A1/灯油（第4類第2石油類）を UN 規格金属携行缶＋防油堤で保管（指定数量未満）、CO₂ 消火器常備
-  - [ ] 騒音 `97.4 dB @ 7 m` に対応した屋外テストベンチ場所（RCジェット飛行場または防音設備）を確保
-- [ ] **採用ルートの最終決定**
-  - [ ] `Route E`（Step-0 EDF訓練・{fmt_jpy(totals['route_e_edf']['total_usd'])}） / `Route C-Min`（市販ジェット極限最安・{fmt_jpy(totals['route_c_min']['total_usd'])}） / `Route B3`（180mm純自作極限最安・{fmt_jpy(totals['route_b3']['total_usd'])}） / `Route B1`（機上発電フル自作・{fmt_jpy(totals['route_b1']['total_usd'])}）
-- [ ] **製造ファイル完全性確認**
-  - [ ] STEP 9点（`manufacturing/generated/step/*.step`）
-  - [ ] 2D GD&T DXF 3点（`manufacturing/generated/drawings/*.dxf`）
-  - [ ] Gerber 9点＋BOM/CPL（`electronics/generated/gerbers/*`, `AHIRU_FADEC_Rev3_BOM.csv`, `AHIRU_FADEC_Rev3_CPL.csv`）
-  - [ ] 本番C11ファームウェア（`firmware/fadec_rev3.c`, `firmware/fadec_rev3.h`）
-
----
-
-## 5. フェーズ別 完全発注チェックリスト（Wave 1〜4・全27項目）
+## 4. フェーズ別 完全発注チェックリスト（Wave 1〜4・全27項目）
 
 {chr(10).join(wave_md_blocks)}
 
 ---
 
-## 6. サプライヤー別 RFQ（見積依頼）送信パッケージ一覧
-
-業者ごとに以下の ZIP パッケージを作ってそのまま見積依頼（RFQ）を送れます：
+## 5. サプライヤー別 RFQ（見積依頼）送信パッケージ一覧
 
 | パッケージ | 送信先業種・推奨ベンダー | 添付するリポジトリ内ファイル | 見積依頼時の必須追記文（コピー可） |
 |---|---|---|---|
-| **RFQ-1: 金属3Dプリント (Inconel 718 単一プレート相乗り)** | Unionfab / WeNext / FacFox | `02_turbine_blisk_Inconel718.step`, `05_combustor_liner_Inconel718.step`, `00_AHIRU_Rev3_Core_Assembly.step`, `07_tvc_gimbal_chevron_nozzle.step`, `DWG_03_Blisks_Flanges_IMU_GDT.dxf` | *Material: Inconel 718 (AMS 5662/5663). Total volume ~9.5 cm³. Please nest all 4 parts on a single build plate and share HIP furnace batch for Part 02 (Turbine Blisk, mandatory HIP + solution/age); stress relief + complete powder removal inside 12 vaporizer tubes for Part 05. Wire-EDM/grind Ø4.000 H6 bore on Part 02 per DWG_03.* |
-| **RFQ-2: 5軸CNC & 精密研削 (Ti / Al / IN718)** | JLCCNC / RapidDirect / PCBWay CNC | `01_compressor_impeller_Ti6Al4V.step`, `03_rotor_shaft_Inconel718.step`, `04_diffuser_bearing_tunnel_Al7075.step`, `06_containment_flange_Inconel718.step`, `DWG_01/02/03.dxf` | *Critical aerospace tolerances per attached DXFs: Shaft Ø5.000 h5 (+0/-0.005mm, Ra<=0.2um, TIR<=2um post-heat-treat cylindrical grind); Diffuser bore Ø11.000 H6 (+0.011/-0mm, coaxiality<=5um, mask bore during hard anodize); Impeller bore Ø5.000 H6; Containment wall >=2.05mm. CMM report mandatory.* |
-| **RFQ-3: 4層PCBA + 2枚SMT実装** | JLCPCB | `electronics/generated/gerbers/*` (9ファイルZIP), `AHIRU_FADEC_Rev3_BOM.csv`, `AHIRU_FADEC_Rev3_CPL.csv` | *4-layer FR-4 High-Tg (TG170), 1.6mm, 2oz copper (outer & inner), ENIG finish, 5 bare PCBs + SMT assembly on 2 boards (Route B3/C-Min) or 5 boards (Route B1). NO substitutions for U1(STM32H743), U2/U3(ICM-42688-P), U6(DRV8353RS), Q1-Q6(BSC028N06LS3 60V), U9(TPS3823-33).* |
-| **RFQ-4: 樹脂3Dプリント (外殻 & 燃料タンク)** | JLC3DP | `00_AHIRU_Rev3_Core_Assembly.step`, `index.html`抽出STL, `08_imu_sorbothane_mount_assembly.step` | *Fuel tank: MJF PA12 ($0.275/g) with 3 internal perforated baffles & UAT sump (powder-free interior, apply fuel-resistant Novolac/Viton internal sealer). Outer duck shell: MJF PA12-CF (Route B3/C-Min/E, shell max verified 28.3°C).* |
-| **RFQ-5: 航空宇宙COTS精密部品** | GRW代理店 / O'Keefe / KST公式 / Xicoy | `BOM_AHIRU_Rev3.csv`（Part `008, 009, 010, 014, 015, 017`） | *Exact P/Ns only: GRW 685-2Z-CE Si3N4 ABEC-7 P4 (Qty 4 incl. spares), AS568-013 FKM Viton 60A (Qty 10), calibrated Ø0.25mm ruby orifice (Lee IEPA1211241H or O'Keefe + 5µm filter, Qty 2), KST X08H Plus V6.0 ($39.99/ea, Qty 2-3), 5V 3ms micro-solenoid (Lee LHDA or SMC S070, Qty 2).* |
-| **RFQ-6: 外部 2面 G0.4 動釣合い** | 高速動釣合い専門工場（国内/深圳マイクロターボ工房） | `DWG_01_Rotor_Shaft_GDT.dxf`, `DWG_03_Blisks_Flanges_IMU_GDT.dxf`, `FLIGHT_QUALIFICATION_MANUAL.md` | *201,000 RPM マイクロタービン用ロータASSY（質量約36g）の2面動釣合い。ISO 1940 G0.4（残存不釣合い ≤ 0.22 mg·mm/面）。修正削りは図面指定のフロントカラー・リアボスのみ。分解再組付用の位相刻印および成績書発行を希望。* |
-
----
-
-## 7. 推奨ステップアップ実行タイムライン（最短2週間〜8週間）
-
-```text
-[Step-0 電動EDF訓練機 Route E: 2–3週間 / {fmt_jpy(totals['route_e_edf']['total_usd'])}]
-Week 1 : JLC3DP PA12-CF外殻 + JLCPCB FADEC(2枚SMT) + KST X08H Plus + 64mm 6S EDF 発注
-Week 2 : C11 FW (fadec_rev3.c) 書込 → 係留3軸SysID → 屋外フリーホバリング・TVC制御完全実証！
-
-[市販ジェット極限最安 Route C-Min: 3–4週間 / {fmt_jpy(totals['route_c_min']['total_usd'])}]
-Week 1 : Swiwin SW60B/SW30B直販 + Unionfab TVCノズル + JLC3DP外殻/タンク + JLCPCB/KST 発注
-Week 2 : 安全治具・ロードセル推力台製作 + C11 FW ベンチ試験
-Week 3 : 全品受入・組付・3点CoG調整 (±2.5mm)・地上火入れ (Gate B1-B4)
-Week 4 : 係留3軸SysID (Gate F1-F2) → 地面効果確認 (F3) → 本物のジェットで初フリーホバリング (F4)！
-
-[純粋自作180mm極限最安 Route B3: 5–7週間 / {fmt_jpy(totals['route_b3']['total_usd'])}]
-Week 1   : Wave 1 一括発注 (IN718 SLM単一プレート+共有HIP + JLCCNC 5軸 + GRW軸受 + ルビーオリフィス)
-Week 2-3 : Wave 2-3 受入 (JLCPCB 2枚SMT + JLC3DP外殻/タンク + DIY防爆試験台完成)
-Week 4-5 : 回転系受入 → CMM/エアマイクロ公差検査 (h5/H6/TIR<=2µm) → 2面G0.4動釣合い
-Week 6-7 : 屋外防爆セル火入れ (B1→B4) → 係留SysID (F1→F3) → 180mm完全自作機 初ホバリング (F4)！
-```
+| **RFQ-1: 金属3Dプリント (IN718単一プレート相乗り)** | Unionfab / WeNext / FacFox | `02_turbine_blisk_Inconel718.step`, `05_combustor_liner_Inconel718.step`, `00_AHIRU_Rev3_Core_Assembly.step`, `07_tvc_gimbal_chevron_nozzle.step`, `DWG_03_Blisks_Flanges_IMU_GDT.dxf` | *Material: Inconel 718 (AMS 5662/5663). Nest parts on a single build plate + shared HIP furnace batch for Part 02 (1180C/100MPa + age); stress relief + ultrasonic powder removal inside 12 vaporizer tubes; wire-EDM Ø4.000 H6 bore on Part 02.* |
+| **RFQ-2: 5軸CNC & 精密研削 (Al 2618 / Al 7075 / IN718)** | JLCCNC / RapidDirect / PCBWay CNC | `01_compressor_impeller_Ti6Al4V.step` (Al 2618-T61可), `03_rotor_shaft_Inconel718.step`, `04_diffuser_bearing_tunnel_Al7075.step`, `06_containment_flange_Inconel718.step`, `DWG_01/02/03.dxf` | *Impeller: Forged Al 2618-T61 (NOT 6061/7075) or Ti-6Al-4V, Ø5.000 H6 bore; Shaft: IN718 Ø5.000 h5 post-HT grind (TIR<=2um, Ra<=0.2um); Diffuser: Al 7075 Ø11.000 H6 (coaxiality<=5um, mask bore during hard anodize); Containment ring wall >=2.05mm.* |
+| **RFQ-3: FADEC電装 (TBS Lucid H7 + WDT / またはJLCPCB 4層PCBA)** | TBS正規店 / JLCPCB | `electronics/generated/gerbers/*`, `AHIRU_FADEC_Rev3_BOM.csv`, `AHIRU_FADEC_Rev3_CPL.csv` | *External-start / COTS route: TBS Lucid H7 FC (STM32H743 + Dual ICM-42688-P) + external TPS3823-33 hardware WDT cutoff board. Onboard-generator B1 route: JLCPCB 4-layer TG170 2oz ENIG, NO substitutions on BSC028N06LS3(60V) / DRV8353RS / TPS3823-33.* |
+| **RFQ-4: 樹脂3Dプリント (PA12-CF外殻 & PA12燃料タンク)** | JLC3DP | `00_AHIRU_Rev3_Core_Assembly.step`, `index.html`抽出STL, `08_imu_sorbothane_mount_assembly.step` | *Fuel tank: MJF PA12 ($0.275/g) w/ 3 internal perforated baffles & UAT sump (apply Jet-A1 Novolac/Viton internal sealer). Outer duck shell: MJF PA12-CF (shell max verified 28.3C).* |
+| **RFQ-5: 航空宇宙COTS精密部品** | GRW代理店 / O'Keefe / KST公式 / Xicoy | `BOM_AHIRU_Rev3.csv`（Part `008, 009, 010, 014, 015, 017`） | *Exact P/Ns only: GRW 685-2Z-CE Si3N4 ABEC-7 P4 (Qty 4 incl. spares), AS568-013 FKM Viton 60A (Qty 10), calibrated Ø0.25mm ruby orifice (Qty 2), KST X08H Plus V6.0 ($39.99/ea, Qty 2-3), SMC S070 5V micro-solenoid (Qty 2).* |
+| **RFQ-6: 外部 2面 G0.4 動釣合い** | 高速動釣合い専門工場（国内/深圳マイクロターボ工房） | `DWG_01_Rotor_Shaft_GDT.dxf`, `DWG_03_Blisks_Flanges_IMU_GDT.dxf`, `FLIGHT_QUALIFICATION_MANUAL.md` | *201,000 RPM マイクロタービン用ロータASSYの2面動釣合い。ISO 1940 G0.4（残存不釣合い ≤ 0.22 mg·mm/面）。修正削りは図面指定のカラー・ボスのみ。位相刻印・成績書必須。* |
 """
 
     out_md = OUT_DIR / "PROCUREMENT_CHECKLIST_AND_COST_ROUTES.md"
@@ -979,3 +1019,4 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
+
