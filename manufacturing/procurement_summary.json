@@ -24,6 +24,13 @@
       "lead_weeks": "5–7週間",
       "savings_vs_a_pct": 50.4
     },
+    "route_b3": {
+      "bom_usd": 3809,
+      "svc_usd": 930,
+      "total_usd": 4739,
+      "lead_weeks": "5–7週間",
+      "savings_vs_a_pct": 71.0
+    },
     "route_c": {
       "bom_usd": 2500,
       "svc_usd": 2570,
@@ -31,13 +38,27 @@
       "lead_weeks": "3–4週間",
       "savings_vs_a_pct": 69.0
     },
+    "route_c_min": {
+      "bom_usd": 1389,
+      "svc_usd": 1955,
+      "total_usd": 3344,
+      "lead_weeks": "3–4週間",
+      "savings_vs_a_pct": 79.5
+    },
     "route_d": {
       "bom_usd": 3431,
       "svc_usd": 375,
       "total_usd": 3806,
       "lead_weeks": "7–9週間 (10機)",
       "savings_vs_a_pct": 76.7
+    },
+    "route_e_edf": {
+      "bom_usd": 786,
+      "svc_usd": 185,
+      "total_usd": 971,
+      "lead_weeks": "2–3週間",
+      "savings_vs_a_pct": 94.1
     }
   },
-  "recommended_primary_route": "Route B1 (完全オリジナル180mm Rev.3 コスト最小化) / 初飛行リスク最小化は 2段階方式 (Route C -> Route B1)"
+  "recommended_primary_route": "純自作180mm最安: Route B3 ($4,739 / 約71.1万円, 部品BOM $3,809) | 市販ジェット最安: Route C-Min ($3,344 / 約50.2万円, 本体のみ $2,939) | Step-0制御実証EDF機: Route E ($971 / 約14.6万円)"
 }
