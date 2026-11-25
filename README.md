@@ -71,4 +71,7 @@ python3 -m mdao_vv.run_pipeline --work-dir ./mdao_out --no-resume
 
 # 4. STM32H743 C11 実機ファームウェア静的解析 & SIL
 make -C firmware check
+
+# 5. 全22分野・一括物理検証（D01〜D22 / Google Colab Pro A100 ノートブック: RikiGaku_AHIRU_Colab_Pro_A100.ipynb）
+python3 -m verify_ahiru.run_all --mode quick --out reports
 ```
