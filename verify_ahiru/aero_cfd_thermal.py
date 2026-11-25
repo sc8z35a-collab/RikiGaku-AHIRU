@@ -98,7 +98,7 @@ def run_d02_cfd_propulsion(mode: str = "quick", export_dir: str | None = None) -
     # Solves De Laval nozzle + free-jet plume to capture Mach shock diamonds!
     nx = 240 if "heavy" in mode else 120
     nr = 80 if "heavy" in mode else 44
-    n_steps = 900 if "heavy" in mode else 320
+    n_steps = 2000 if "heavy" in mode else 320
 
     # Nozzle centerline profile r_wall(x) for x in [0, 0.08] m
     x_grid = np.linspace(0.0, 0.085, nx)
@@ -129,14 +129,15 @@ def run_d02_cfd_propulsion(mode: str = "quick", export_dir: str | None = None) -
         rw_t = torch.tensor(r_wall, device=dev, dtype=torch.float32)[:, None]
         solid = r_c > rw_t
         solid[x_grid > 0.025, :] = False
+        inlet_r = int(0.0145 / dr)
 
         # Subsonic total inlet BC at x=0, supersonic/ambient outlet
         for _ in range(n_steps):
-            rho[0, :30] = P05 / (287.0 * T05)
-            u_in = 145.0
-            ru[0, :30] = rho[0, :30] * u_in
-            rv[0, :30] = 0.0
-            E[0, :30] = P05 / (gamma - 1.0) + 0.5 * rho[0, :30] * u_in * u_in
+            rho[0, :inlet_r] = P05 / (287.0 * T05)
+            u_in = 165.0
+            ru[0, :inlet_r] = rho[0, :inlet_r] * u_in
+            rv[0, :inlet_r] = 0.0
+            E[0, :inlet_r] = P05 / (gamma - 1.0) + 0.5 * rho[0, :inlet_r] * u_in * u_in
 
             u = ru / rho.clamp_min(1e-4)
             v = rv / rho.clamp_min(1e-4)
@@ -407,8 +408,9 @@ def run_d13_ignition_blowout(mode: str = "quick") -> Dict[str, Any]:
         else:
             ignited = True
             target_rpm = 128000.0 if t < 5.5 else 225000.0
-            tau_turb = 0.0115 * max(0.0, (target_rpm - rpm) / 90000.0) + 2.4e-12 * (rpm ** 2)
+            gov = max(0.2, min(1.8, 1.0 + (target_rpm - rpm) / 30000.0))
             tau_comp = 2.0e-12 * (rpm ** 2)
+            tau_turb = tau_comp * gov + 0.0085 * max(0.0, (target_rpm - rpm) / 90000.0)
             rpm += ((tau_turb - tau_comp) / J_rot) * dt * (60.0 / (2.0 * math.pi))
             T_egt += ((1060.0 if t > 5.5 else 890.0) - T_egt) * dt * 2.2
             if t_idle is None and rpm >= 115000.0:

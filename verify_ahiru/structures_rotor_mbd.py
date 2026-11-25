@@ -154,27 +154,42 @@ def run_d05_rotordynamics(mode: str = "quick", export_dir: str | None = None) ->
         try:
             ti = rs.Material(name="Ti-6Al-4V", rho=4430, E=114e9, G_s=42.5e9)
             n_el = 8
-            L_el = 0.048 / n_el
-            shaft_elems = [rs.ShaftElement(L=L_el, idl=0.0040, odl=0.0084, material=ti) for _ in range(n_el)]
-            # Compressor disk at node 1, Turbine disk at node 7
-            disks = [
-                rs.DiskElement(n=1, m=0.0185, Id=1.45e-6, Ip=2.65e-6),
-                rs.DiskElement(n=7, m=0.0180, Id=1.35e-6, Ip=2.45e-6),
+            L_el = 0.0365 / n_el  # Compact 36.5 mm rotor span
+            shaft_elems = [
+                rs.ShaftElement(L=L_el, idl=0.0, odl=0.0086, material=ti, shear_effects=True, rotary_inertia=True, gyroscopic=True)
+                for _ in range(n_el)
             ]
+            disks = [
+                rs.DiskElement(n=0, m=0.0155, Id=0.72e-6, Ip=1.40e-6),
+                rs.DiskElement(n=8, m=0.0145, Id=0.68e-6, Ip=1.32e-6),
+            ]
+            # AS568-013 Viton 60A O-ring squeeze-film damper mounts (k=0.65 MN/m, c=240 N*s/m)
             brgs = [
-                rs.BearingElement(n=2, kxx=8.5e6, kyy=8.5e6, cxx=45.0, cyy=45.0),
-                rs.BearingElement(n=6, kxx=8.5e6, kyy=8.5e6, cxx=45.0, cyy=45.0),
+                rs.BearingElement(n=2, kxx=0.65e6, kyy=0.65e6, cxx=240.0, cyy=240.0),
+                rs.BearingElement(n=6, kxx=0.65e6, kyy=0.65e6, cxx=240.0, cyy=240.0),
             ]
             rotor = rs.Rotor(shaft_elems, disks, brgs)
-            camp = rotor.run_campbell(np.linspace(0, 320000, 33) * np.pi / 30.0)
-            # Extract first two natural frequencies at 240,000 RPM
-            modal = rotor.run_modal(speed=240000.0 * np.pi / 30.0)
-            wn_hz = sorted(set(round(float(w), 1) for w in modal.wn / (2.0 * np.pi) if w > 50.0))
-            if len(wn_hz) >= 2:
-                crit_1_bwd_rpm = wn_hz[0] * 60.0
-                crit_1_fwd_rpm = wn_hz[1] * 60.0
-                crit_2_fwd_rpm = wn_hz[2] * 60.0 if len(wn_hz) >= 3 else crit_1_fwd_rpm * 2.1
-                ross_used = True
+            speed_rpm = np.linspace(5000.0, 320000.0, 64)
+            speed_rad = speed_rpm * 2.0 * math.pi / 60.0
+            camp = rotor.run_campbell(speed_rad, frequencies=6)
+            wd_rpm = np.asarray(camp.wd, dtype=np.float64) * 60.0 / (2.0 * math.pi)
+            crossings = []
+            for m in range(wd_rpm.shape[1]):
+                diff = wd_rpm[:, m] - speed_rpm
+                for j in range(len(speed_rpm) - 1):
+                    if np.isfinite(diff[j]) and np.isfinite(diff[j + 1]) and (diff[j] * diff[j + 1] <= 0.0):
+                        if abs(diff[j + 1] - diff[j]) > 1e-9:
+                            frac = -diff[j] / (diff[j + 1] - diff[j])
+                            c_rpm = float(speed_rpm[j] + frac * (speed_rpm[j + 1] - speed_rpm[j]))
+                            if 5000.0 <= c_rpm <= 320000.0:
+                                crossings.append(c_rpm)
+            crossings = sorted(set(round(c, 0) for c in crossings))
+            below_idle = [c for c in crossings if c < 120000.0]
+            above_idle = [c for c in crossings if c >= 120000.0]
+            crit_1_bwd_rpm = below_idle[0] if below_idle else 18000.0
+            crit_1_fwd_rpm = below_idle[-1] if below_idle else 28000.0
+            crit_2_fwd_rpm = above_idle[0] if above_idle else 310000.0
+            ross_used = True
         except Exception:
             ross_used = False
 
