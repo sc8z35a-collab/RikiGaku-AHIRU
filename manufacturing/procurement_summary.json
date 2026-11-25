@@ -4,46 +4,47 @@
   "total_procurement_line_items": 27,
   "dry_mass_rollup_g": 487.8,
   "routes": {
-    "route_a": {
-      "bom_usd": 13467,
-      "svc_usd": 2870,
-      "total_usd": 16337,
-      "lead_weeks": "10–14週間"
+    "route_e_min": {
+      "bom_usd": 389,
+      "svc_usd": 106,
+      "total_usd": 495,
+      "lead_weeks": "1–2週間",
+      "savings_vs_a_pct": 97.0
     },
-    "route_b1": {
-      "bom_usd": 6772,
-      "svc_usd": 1790,
-      "total_usd": 8562,
-      "lead_weeks": "6–8週間",
-      "savings_vs_a_pct": 47.6
-    },
-    "route_b2": {
-      "bom_usd": 6312,
-      "svc_usd": 1790,
-      "total_usd": 8102,
-      "lead_weeks": "5–7週間",
-      "savings_vs_a_pct": 50.4
-    },
-    "route_b3": {
-      "bom_usd": 3809,
-      "svc_usd": 930,
-      "total_usd": 4739,
-      "lead_weeks": "5–7週間",
-      "savings_vs_a_pct": 71.0
-    },
-    "route_c": {
-      "bom_usd": 2500,
-      "svc_usd": 2570,
-      "total_usd": 5070,
-      "lead_weeks": "3–4週間",
-      "savings_vs_a_pct": 69.0
+    "route_e_edf": {
+      "bom_usd": 786,
+      "svc_usd": 185,
+      "total_usd": 971,
+      "lead_weeks": "2–3週間",
+      "savings_vs_a_pct": 94.1
     },
     "route_c_min": {
-      "bom_usd": 1389,
-      "svc_usd": 1955,
-      "total_usd": 3344,
+      "bom_usd": 1129,
+      "svc_usd": 1875,
+      "total_usd": 3004,
       "lead_weeks": "3–4週間",
-      "savings_vs_a_pct": 79.5
+      "savings_vs_a_pct": 81.6
+    },
+    "route_c_x45": {
+      "bom_usd": 1103,
+      "svc_usd": 2130,
+      "total_usd": 3233,
+      "lead_weeks": "3–4週間",
+      "savings_vs_a_pct": 80.2
+    },
+    "route_b4": {
+      "bom_usd": 3005,
+      "svc_usd": 870,
+      "total_usd": 3875,
+      "lead_weeks": "5–7週間",
+      "savings_vs_a_pct": 76.3
+    },
+    "route_b3": {
+      "bom_usd": 3514,
+      "svc_usd": 930,
+      "total_usd": 4444,
+      "lead_weeks": "5–7週間",
+      "savings_vs_a_pct": 72.8
     },
     "route_d": {
       "bom_usd": 3431,
@@ -52,13 +53,143 @@
       "lead_weeks": "7–9週間 (10機)",
       "savings_vs_a_pct": 76.7
     },
-    "route_e_edf": {
-      "bom_usd": 786,
-      "svc_usd": 185,
-      "total_usd": 971,
-      "lead_weeks": "2–3週間",
-      "savings_vs_a_pct": 94.1
+    "route_c": {
+      "bom_usd": 2500,
+      "svc_usd": 2570,
+      "total_usd": 5070,
+      "lead_weeks": "3–4週間",
+      "savings_vs_a_pct": 69.0
+    },
+    "route_b2": {
+      "bom_usd": 6312,
+      "svc_usd": 1790,
+      "total_usd": 8102,
+      "lead_weeks": "5–7週間",
+      "savings_vs_a_pct": 50.4
+    },
+    "route_b1": {
+      "bom_usd": 6772,
+      "svc_usd": 1790,
+      "total_usd": 8562,
+      "lead_weeks": "6–8週間",
+      "savings_vs_a_pct": 47.6
+    },
+    "route_a": {
+      "bom_usd": 13467,
+      "svc_usd": 2870,
+      "total_usd": 16337,
+      "lead_weeks": "10–14週間"
     }
   },
-  "recommended_primary_route": "純自作180mm最安: Route B3 ($4,739 / 約71.1万円, 部品BOM $3,809) | 市販ジェット最安: Route C-Min ($3,344 / 約50.2万円, 本体のみ $2,939) | Step-0制御実証EDF機: Route E ($971 / 約14.6万円)"
+  "cost_safety_tradeoffs": [
+    {
+      "id": "impeller_al2618",
+      "category": "推奨できる安全削減",
+      "title": "圧縮機: Ti-6Al-4V ($260) → 鍛造 Al 2618-T61 ($115)",
+      "delta_usd": -145,
+      "verdict": "PASS",
+      "badge": "◎ 強く推奨 (性能向上)",
+      "gyro_delta_pct": -8.2,
+      "mass_delta_g": -2.4,
+      "safety_delta": 0,
+      "physics_reason": "PR=2.8出口温度は140°C（Al 2618耐熱200°C以下）。遠心応力154 MPaに対し耐力340 MPaでSF=2.21を確保しつつ、回転慣性が-38%減りジャイロ連成が41.8%→33.6%へ劇的改善！（※Al 7075は120°C超で軟化するためNG）"
+    },
+    {
+      "id": "fc_lucid_h7",
+      "category": "推奨できる安全削減",
+      "title": "FADEC基板: JLCPCB 2枚SMT ($235) → TBS Lucid H7 ($49) + 外部WDT ($36)",
+      "delta_usd": -150,
+      "verdict": "PASS",
+      "badge": "◎ 推奨 (外部始動/市販機)",
+      "gyro_delta_pct": 0.0,
+      "mass_delta_g": 4.2,
+      "safety_delta": 0,
+      "physics_reason": "2026実売$49のTBS Lucid H7は本番同一のSTM32H743＋デュアルICM-42688-Pを標準搭載。外部スタータ運用（Route B3/B4）や市販ECU機（C-X45/E-Min）では機上60V FOCが不要なため、TPS3823独立WDT外付けで安全性ゼロ妥協のまま-$150削減。"
+    },
+    {
+      "id": "cots_x45_vs_sw60b",
+      "category": "条件付き・サイズ要注意",
+      "title": "市販タービン: Xicoy X45 ($1,750) vs Swiwin SW60B ($1,500)",
+      "delta_usd": -250,
+      "verdict": "WARN",
+      "badge": "△ 安物買い注意 (大型化)",
+      "gyro_delta_pct": 12.0,
+      "mass_delta_g": 388.0,
+      "safety_delta": -15,
+      "physics_reason": "実市場精査でSwiwin最小機はSW60B（Ø76–84mm・783g・スプール遅れ3.2秒・SW30Bは現行非存在）と判明！機体が1.65倍（全長30cm・全備1.8kg）に肥大化。+$229（約3.4万円）でXicoy X45（Ø59.8mm・395g・2.8s）を選ぶ方がVTOL安定性・サイズ感とも圧倒的優位！"
+    },
+    {
+      "id": "combustor_sheet_310s",
+      "category": "条件付き・工作スキル要",
+      "title": "燃焼器＆ノズル: IN718 SLM ($570) → 0.4mm SUS310S板金溶接 ($240)",
+      "delta_usd": -330,
+      "verdict": "WARN",
+      "badge": "○ 条件付可 (溶接治具要)",
+      "gyro_delta_pct": 0.0,
+      "mass_delta_g": -7.5,
+      "safety_delta": -8,
+      "physics_reason": "Wren 44 / KJ-66等DIYタービン王道手法で軽量化＆-$330。ただし気化管角度や希釈孔のズレでホットストリーク(PF)が悪化しやすく、スポット溶接治具がない場合はSTEP図面そのままのIN718 SLM一括相乗り（Route B3）が安全。"
+    },
+    {
+      "id": "edf_petgcf_shell",
+      "category": "Step-0 電動機限定",
+      "title": "Step-0外殻: JLC3DP PA12-CF ($115) → FDM PETG-CF/PA12 ($48)",
+      "delta_usd": -67,
+      "verdict": "PASS",
+      "badge": "◎ 電動EDF機で推奨",
+      "gyro_delta_pct": 0.0,
+      "mass_delta_g": 12.0,
+      "safety_delta": 0,
+      "physics_reason": "電動EDF（Route E-Min）は排気常温で熱変形ゼロ。2026年FDM造形（$0.05–$0.15/g）＋TBS Lucid H7＋Dynam 64mm EDF($76)で制御実証機総額を約7.4万円($495)まで圧縮可能。"
+    },
+    {
+      "id": "trap_cheap_servos",
+      "category": "絶対NG (偽の節約トラップ)",
+      "title": "【罠】TVCサーボ: KST X08H Plus ($95) → 安価$12メタルギアサーボ ($24)",
+      "delta_usd": -71,
+      "verdict": "FAIL",
+      "badge": "× 絶対NG (発振墜落)",
+      "gyro_delta_pct": 0.0,
+      "mass_delta_g": 2.0,
+      "safety_delta": -45,
+      "physics_reason": "安価な$12サーボはギアバックラッシ1.5〜3.0°（KSTは≤0.25°）。TVCのガタが0.8°を超えると1kHz LQRがリミットサイクル発振し離陸1秒で転倒墜落。$71ケチって50万円の機体を破壊する最悪の偽節約！"
+    },
+    {
+      "id": "trap_cheap_bearings",
+      "category": "絶対NG (偽の節約トラップ)",
+      "title": "【罠】軸受: GRW 685 ABEC-7 P4 ($220) → AliExpress中華ハイブリッド ($15)",
+      "delta_usd": -205,
+      "verdict": "FAIL",
+      "badge": "× 絶対NG (数秒で焼付き)",
+      "gyro_delta_pct": 0.0,
+      "mass_delta_g": 0.0,
+      "safety_delta": -70,
+      "physics_reason": "実測調査の通り安価ハイブリッド軸受はABEC-1/C0ガタ(3–18µm)＋金属冠型保持器（上限22,000 RPM）。201,000 RPM（dm·N=1.71M）では保持器が遠心破断して即ロック・タービン破損。"
+    },
+    {
+      "id": "trap_no_hip",
+      "category": "絶対NG (偽の節約トラップ)",
+      "title": "【罠】タービン熱処理: HIP+時効 ($490) → 未HIP造形っぱなし ($240)",
+      "delta_usd": -250,
+      "verdict": "FAIL",
+      "badge": "× 絶対NG (ブレード飛散)",
+      "gyro_delta_pct": 0.0,
+      "mass_delta_g": 0.0,
+      "safety_delta": -65,
+      "physics_reason": "SLM造形直後のIN718は内部マイクロポア（空隙）を含み、920°C・遠心48,000G環境下でクリープ亀裂が急速進展。共有HIP炉を使えばコストを抑えつつ空隙ゼロを保証できるためHIP省略は厳禁。"
+    },
+    {
+      "id": "trap_diy_balance",
+      "category": "絶対NG (偽の節約トラップ)",
+      "title": "【罠】動釣合い: 専門2面G0.4 ($380) → スマホ/圧電DIY1面バランス ($60)",
+      "delta_usd": -320,
+      "verdict": "FAIL",
+      "badge": "× 絶対NG (軸受寿命1/1000)",
+      "gyro_delta_pct": 0.0,
+      "mass_delta_g": 0.0,
+      "safety_delta": -60,
+      "physics_reason": "201,000 RPMでは残存不釣合いがG0.4(0.22 mg·mm)からG4.0へ悪化するだけで遠心加振力が10倍（~96 N）・軸受疲労寿命が1/1000に崩壊し、IMUも3.35 kHz振動で飽和。外部専門2面G0.4は絶対必須。"
+    }
+  ],
+  "recommended_primary_route": "Step-0電動最安: Route E-Min ($495 / 約7.4万円) | 市販ジェット推奨最適: Route C-X45 ($3,233 / 約48.5万円) [絶対最安C-Min $3,004は1.65x大型化注意] | 180mm純自作図面準拠最安: Route B3 ($4,444 / 約66.7万円) | 180mm純自作DIY板金極限: Route B4 ($3,875 / 約58.1万円)"
 }
