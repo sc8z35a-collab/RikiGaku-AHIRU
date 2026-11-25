@@ -1,0 +1,43 @@
+{
+  "jpy_per_usd": 150,
+  "bom_item_count": 23,
+  "total_procurement_line_items": 27,
+  "dry_mass_rollup_g": 487.8,
+  "routes": {
+    "route_a": {
+      "bom_usd": 13467,
+      "svc_usd": 2870,
+      "total_usd": 16337,
+      "lead_weeks": "10–14週間"
+    },
+    "route_b1": {
+      "bom_usd": 6772,
+      "svc_usd": 1790,
+      "total_usd": 8562,
+      "lead_weeks": "6–8週間",
+      "savings_vs_a_pct": 47.6
+    },
+    "route_b2": {
+      "bom_usd": 6312,
+      "svc_usd": 1790,
+      "total_usd": 8102,
+      "lead_weeks": "5–7週間",
+      "savings_vs_a_pct": 50.4
+    },
+    "route_c": {
+      "bom_usd": 2500,
+      "svc_usd": 2570,
+      "total_usd": 5070,
+      "lead_weeks": "3–4週間",
+      "savings_vs_a_pct": 69.0
+    },
+    "route_d": {
+      "bom_usd": 3431,
+      "svc_usd": 375,
+      "total_usd": 3806,
+      "lead_weeks": "7–9週間 (10機)",
+      "savings_vs_a_pct": 76.7
+    }
+  },
+  "recommended_primary_route": "Route B1 (完全オリジナル180mm Rev.3 コスト最小化) / 初飛行リスク最小化は 2段階方式 (Route C -> Route B1)"
+}

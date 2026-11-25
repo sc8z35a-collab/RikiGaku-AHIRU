@@ -1,0 +1,38 @@
+{
+  "verdict": "PASS",
+  "elapsed_sec": 0.03,
+  "schematic": "/home/antigravity/sc8z35a-collab/RikiGaku-AHIRU/electronics/generated/AHIRU_FADEC_Rev3.kicad_sch",
+  "pcb": "/home/antigravity/sc8z35a-collab/RikiGaku-AHIRU/electronics/generated/AHIRU_FADEC_Rev3.kicad_pcb",
+  "gerber_and_drill_files": [
+    "/home/antigravity/sc8z35a-collab/RikiGaku-AHIRU/electronics/generated/gerbers/AHIRU_FADEC_Rev3-Edge_Cuts.gm1",
+    "/home/antigravity/sc8z35a-collab/RikiGaku-AHIRU/electronics/generated/gerbers/AHIRU_FADEC_Rev3-F_Cu.gtl",
+    "/home/antigravity/sc8z35a-collab/RikiGaku-AHIRU/electronics/generated/gerbers/AHIRU_FADEC_Rev3-B_Cu.gbl",
+    "/home/antigravity/sc8z35a-collab/RikiGaku-AHIRU/electronics/generated/gerbers/AHIRU_FADEC_Rev3-In1_Cu.g1",
+    "/home/antigravity/sc8z35a-collab/RikiGaku-AHIRU/electronics/generated/gerbers/AHIRU_FADEC_Rev3-In2_Cu.g2",
+    "/home/antigravity/sc8z35a-collab/RikiGaku-AHIRU/electronics/generated/gerbers/AHIRU_FADEC_Rev3-F_Mask.gts",
+    "/home/antigravity/sc8z35a-collab/RikiGaku-AHIRU/electronics/generated/gerbers/AHIRU_FADEC_Rev3-B_Mask.gbs",
+    "/home/antigravity/sc8z35a-collab/RikiGaku-AHIRU/electronics/generated/gerbers/AHIRU_FADEC_Rev3-F_SilkS.gto",
+    "/home/antigravity/sc8z35a-collab/RikiGaku-AHIRU/electronics/generated/gerbers/AHIRU_FADEC_Rev3.drl"
+  ],
+  "drc_ipc2152": {
+    "drc_errors": 0,
+    "min_copper_to_edge_mm": 1.315,
+    "ipc2152_3oz_3p6mm_dT_18A_cont_C": 9.85,
+    "ipc2152_3oz_3p6mm_dT_28A_10s_crank_C": 8.86,
+    "track_count": 12,
+    "component_count": 24,
+    "pass": true
+  },
+  "ngspice_60v_foc": {
+    "solver": "Ngspice Native Batch Transient (Rev.3 60V Direct-Drive FOC + Staged Start)",
+    "netlist": "/home/antigravity/sc8z35a-collab/RikiGaku-AHIRU/electronics/generated/ahiru_rev3_60v_foc.cir",
+    "vbus_min_V": 9.669,
+    "v33_min_V": 3.289,
+    "v33_max_V": 3.298,
+    "v_dc60_peak_V": 24.374,
+    "mosfet_60v_voltage_sf": 2.46,
+    "v_solenoid_flyback_V": 12.069,
+    "zero_mechanical_clutch": true,
+    "pass": true
+  }
+}

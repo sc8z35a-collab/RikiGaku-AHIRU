@@ -1,0 +1,132 @@
+{
+  "verdict": "PASS",
+  "elapsed_sec": 3.8,
+  "step_files": [
+    {
+      "file": "00_AHIRU_Rev3_Core_Assembly.step",
+      "path": "/home/antigravity/sc8z35a-collab/RikiGaku-AHIRU/manufacturing/generated/step/00_AHIRU_Rev3_Core_Assembly.step",
+      "solid_count": 7,
+      "volume_mm3": 18462.67,
+      "size_bytes": 234038,
+      "material": "Multi-Material Engine Core Assembly (ISO 10303-21 STEP AP214)",
+      "process": "Complete Mated Core Sub-Assembly"
+    },
+    {
+      "file": "01_compressor_impeller_Ti6Al4V.step",
+      "path": "/home/antigravity/sc8z35a-collab/RikiGaku-AHIRU/manufacturing/generated/step/01_compressor_impeller_Ti6Al4V.step",
+      "solid_count": 1,
+      "volume_mm3": 1700.98,
+      "size_bytes": 612616,
+      "material": "Ti-6Al-4V Grade 5 (AMS 4928)",
+      "process": "5-Axis CNC Mill + EDM Bore + ISO 1940 G0.4 2-Plane Balance",
+      "mass_g": 7.54
+    },
+    {
+      "file": "02_turbine_blisk_Inconel718.step",
+      "path": "/home/antigravity/sc8z35a-collab/RikiGaku-AHIRU/manufacturing/generated/step/02_turbine_blisk_Inconel718.step",
+      "solid_count": 1,
+      "volume_mm3": 742.28,
+      "size_bytes": 687769,
+      "material": "Inconel 718 (AMS 5662 / DMLS+HIP+5-Axis Finish)",
+      "process": "Investment Cast or DMLS+HIP + 5-Axis CNC Finish + G0.4 Balance",
+      "mass_g": 6.08
+    },
+    {
+      "file": "03_rotor_shaft_Inconel718.step",
+      "path": "/home/antigravity/sc8z35a-collab/RikiGaku-AHIRU/manufacturing/generated/step/03_rotor_shaft_Inconel718.step",
+      "solid_count": 1,
+      "volume_mm3": 1297.09,
+      "size_bytes": 45187,
+      "material": "Inconel 718 Bar (AMS 5663, Solution+Aged)",
+      "process": "Swiss CNC Turn + Cylindrical Precision Grind (Ra 0.2, TIR <= 2 um)",
+      "mass_g": 10.62
+    },
+    {
+      "file": "04_diffuser_bearing_tunnel_Al7075.step",
+      "path": "/home/antigravity/sc8z35a-collab/RikiGaku-AHIRU/manufacturing/generated/step/04_diffuser_bearing_tunnel_Al7075.step",
+      "solid_count": 1,
+      "volume_mm3": 4895.95,
+      "size_bytes": 461565,
+      "material": "Al 7075-T651 Hard Anodized (MIL-A-8625 Type III)",
+      "process": "5-Axis CNC + Jig-Bore Ø11.000 H6 + EDM/Micro-Drill Oil-Mist Gallery",
+      "mass_g": 13.76
+    },
+    {
+      "file": "05_combustor_liner_Inconel718.step",
+      "path": "/home/antigravity/sc8z35a-collab/RikiGaku-AHIRU/manufacturing/generated/step/05_combustor_liner_Inconel718.step",
+      "solid_count": 13,
+      "volume_mm3": 4425.19,
+      "size_bytes": 992765,
+      "material": "Inconel 718 Powder (EOS IN718, 20 um SLM Layer)",
+      "process": "SLM/DMLS Additive + Stress-Relief + Abrasive Flow Polish",
+      "mass_g": 36.24
+    },
+    {
+      "file": "06_containment_flange_Inconel718.step",
+      "path": "/home/antigravity/sc8z35a-collab/RikiGaku-AHIRU/manufacturing/generated/step/06_containment_flange_Inconel718.step",
+      "solid_count": 1,
+      "volume_mm3": 2568.22,
+      "size_bytes": 225542,
+      "material": "Inconel 718 (AMS 5662, 2.05 mm Wall, Containment SF=46.5)",
+      "process": "CNC Turn-Mill + Reamed Ø2.000 H7 Dowel Holes + A286 M2.5 Studs",
+      "mass_g": 21.03
+    },
+    {
+      "file": "07_tvc_gimbal_chevron_nozzle.step",
+      "path": "/home/antigravity/sc8z35a-collab/RikiGaku-AHIRU/manufacturing/generated/step/07_tvc_gimbal_chevron_nozzle.step",
+      "solid_count": 2,
+      "volume_mm3": 3412.15,
+      "size_bytes": 77891,
+      "material": "Inconel 718 Nozzle + Ti-6Al-4V Gimbal Ring",
+      "process": "SLM/DMLS Chevron Nozzle + 4-Axis CNC Ti-6Al-4V Gimbal Yoke",
+      "mass_g": 24.57
+    },
+    {
+      "file": "08_imu_sorbothane_mount_assembly.step",
+      "path": "/home/antigravity/sc8z35a-collab/RikiGaku-AHIRU/manufacturing/generated/step/08_imu_sorbothane_mount_assembly.step",
+      "solid_count": 5,
+      "volume_mm3": 740.43,
+      "size_bytes": 45416,
+      "material": "Al 7075-T6 Plate + Sorbothane 50D Grommets (f_n=38 Hz, -78 dB @ 1X)",
+      "process": "3-Axis CNC + Molded Sorbothane 50D Isolators",
+      "mass_g": 1.55
+    }
+  ],
+  "dxf_drawings": [
+    {
+      "file": "DWG_01_Rotor_Shaft_GDT.dxf",
+      "path": "/home/antigravity/sc8z35a-collab/RikiGaku-AHIRU/manufacturing/generated/drawings/DWG_01_Rotor_Shaft_GDT.dxf",
+      "size_bytes": 20527,
+      "gdt_callouts": 6
+    },
+    {
+      "file": "DWG_02_Diffuser_Lube_ORing_GDT.dxf",
+      "path": "/home/antigravity/sc8z35a-collab/RikiGaku-AHIRU/manufacturing/generated/drawings/DWG_02_Diffuser_Lube_ORing_GDT.dxf",
+      "size_bytes": 21897,
+      "gdt_callouts": 5
+    },
+    {
+      "file": "DWG_03_Blisks_Flanges_IMU_GDT.dxf",
+      "path": "/home/antigravity/sc8z35a-collab/RikiGaku-AHIRU/manufacturing/generated/drawings/DWG_03_Blisks_Flanges_IMU_GDT.dxf",
+      "size_bytes": 23806,
+      "gdt_callouts": 5
+    }
+  ],
+  "bom_and_manual": {
+    "bom_csv": "/home/antigravity/sc8z35a-collab/RikiGaku-AHIRU/manufacturing/generated/BOM_AHIRU_Rev3.csv",
+    "bom_md": "/home/antigravity/sc8z35a-collab/RikiGaku-AHIRU/manufacturing/generated/BOM_AHIRU_Rev3.md",
+    "manual_md": "/home/antigravity/sc8z35a-collab/RikiGaku-AHIRU/manufacturing/generated/FLIGHT_QUALIFICATION_MANUAL.md",
+    "bom_line_items": 23,
+    "dry_mass_rollup_g": 487.8,
+    "wet_mass_rollup_g": 599.4,
+    "proto_cost_usd": 13467,
+    "batch10_cost_usd": 4496
+  },
+  "summary": {
+    "step_count": 9,
+    "dxf_count": 3,
+    "total_gdt_callouts": 16,
+    "dry_mass_rollup_g": 487.8,
+    "proto_cost_usd": 13467
+  }
+}

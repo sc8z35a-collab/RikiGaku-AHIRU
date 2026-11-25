@@ -1,0 +1,60 @@
+* AHIRU Rev.3 Zero-Clutch 60V GaN/MOSFET FOC + Staged Ignition + Dual-LDO + Watchdog Cutoff
+.param VBAT_OCV=11.4 R_BAT=0.055 L_HARN=120n
+
+* 3S 750 mAh 60C LiHV Battery + Harness Inductance + 470uF Hybrid Bulk Hold-Up Cap
+Vbat n_ocv 0 DC {VBAT_OCV}
+Rbat n_ocv n_b1 {R_BAT}
+Lbat n_b1 vbus {L_HARN}
+Cbulk vbus n_cb 470u IC=11.4
+Resr n_cb 0 0.018
+
+* Stage-1 Glow Preheat (6A @ t=0.5..3.5ms) -> Stage-2 FOC Crank (28A @ t=4..10ms) + Glow PWM (3A)
+Ipreheat vbus 0 PULSE(0 6.0 0.5m 50u 50u 3.0m 50m)
+Ifoc_crank vbus 0 PULSE(0 28.0 4.0m 80u 80u 6.0m 50m)
+Iglow_pwm vbus 0 PULSE(0 3.0 4.0m 50u 50u 6.0m 50m)
+
+* Dual-Stage Avionics Rail: Buck (5V) + TPS7A47 Ultra-Low-Noise LDO (3.3V Dual-IMU)
+B5v n5_src 0 V = min(5.0, max(0, V(vbus) - 0.35))
+R5_out n5_src v5 0.06
+C5_out v5 0 47u IC=5.0
+I5_load v5 0 DC 0.65
+
+B3v3 n3_src 0 V = min(3.30, max(0, V(v5) - 0.15))
+R3_out n3_src v33 0.04
+C3_out v33 0 22u IC=3.30
+I3_load v33 0 DC 0.28
+
+* 201,000 RPM Direct-Coupled SmCo28 Back-EMF (25.8 Vpk, 3.35 kHz) into 60V Active Buck Bridge + Reverse-Biased TVS Clamp
+Vemf n_emf 0 SIN(0 25.8 3350 11m)
+Rphase n_emf n_rect 0.18
+Drect1 n_rect v_dc60 D60V
+Drect2 0 n_rect D60V
+Cdc60 v_dc60 0 22u IC=12.0
+* Synchronous Buck Regulator delivering +18W net charge into vbus
+Rchg v_dc60 vbus 4.2
+* SMBJ28A Reverse-Biased TVS Surge Clamp (cathode on v_dc60, BV=31V) protecting 60V MOSFET drain
+Dtvs 0 v_dc60 DTVS30
+
+* Fuel Solenoid Inductive Load (12mH, 0.4A) with SS36 Schottky Flyback & Hardware Watchdog Kill @ t=12ms
+Rsol vbus n_sol1 22
+Lsol n_sol1 n_drain 12m
+Dfly n_drain vbus D60V
+Sfuel n_drain 0 n_wdt 0 SWKILL
+Vwdt n_wdt 0 PULSE(5 0 12.0m 1u 1u 10m 50m)
+
+.model D60V D(Is=1e-9 Rs=0.04 BV=65 IBV=1m)
+.model DTVS30 D(Is=1e-9 Rs=0.15 BV=31.0 IBV=10m)
+.model SWKILL SW(Vt=2.5 Ron=0.05 Roff=1e6)
+
+.tran 20u 16m uic
+.control
+run
+let vbus_min = vecmin(v(vbus))
+let v33_min = vecmin(v(v33))
+let v33_max = vecmax(v(v33))
+let vdc60_max = vecmax(v(v_dc60))
+let vsol_max = vecmax(v(n_drain))
+print vbus_min v33_min v33_max vdc60_max vsol_max
+quit
+.endc
+.end

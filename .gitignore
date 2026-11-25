@@ -1,5 +1,5 @@
 __pycache__/
-*.pyc
-.pytest_cache/
-reports/
-tmp/
+*.py[cod]
+verification_out/
+.ipynb_checkpoints/
+*.zip
