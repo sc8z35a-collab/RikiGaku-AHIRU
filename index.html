@@ -1032,11 +1032,11 @@
   function buildBellyHeatShield() {
     const mb = new MeshBuilder();
     mb.addLathe([
-      [17.2, 22.5], [23.8, 22.5], [25.0, 24.0], [24.6, 26.2], [18.0, 26.2], [17.2, 22.5]
+      [17.0, 22.5], [22.2, 22.5], [23.2, 24.0], [22.8, 26.2], [17.8, 26.2], [17.0, 22.5]
     ], 44, EX, 0, 0);
     for (let i = 0; i < 8; i++) {
       const a = (i / 8) * Math.PI * 2;
-      mb.addHexBolt(EX + Math.cos(a) * 21.4, 21.5, Math.sin(a) * 21.4, 1.25, 1.1);
+      mb.addHexBolt(EX + Math.cos(a) * 20.4, 21.5, Math.sin(a) * 20.4, 1.15, 1.1);
     }
     return mb.build(25);
   }
@@ -1044,37 +1044,39 @@
   // 4.7 Shock-Absorbing Titanium Strut + Sculpted Webbed Duck Feet (Exact Y min = 0.0 mm)
   function buildWebbedFoot(side) {
     const mb = new MeshBuilder();
-    const fz = side * 22.5;
-    const toes = [[25, 0, fz - 11.5 * side], [28, 0, fz], [25, 0, fz + 11.5 * side]];
+    const fx = 6.0;
+    const fz = side * 28.0;
+    const toes = [[fx + 22, 0, fz - 10.5 * side], [fx + 25, 0, fz], [fx + 22, 0, fz + 10.5 * side]];
     const fanPts = [
-      [-11, fz - 5], [-4, fz - 8.5], [14, fz - 12.5], [24, fz - 11.0],
-      [22, fz - 5.5], [28, fz], [22, fz + 5.5],
-      [24, fz + 11.0], [14, fz + 12.5], [-4, fz + 8.5], [-11, fz + 5]
+      [fx - 12, fz - 4.5], [fx - 5, fz - 8.0], [fx + 12, fz - 11.5], [fx + 21, fz - 10.0],
+      [fx + 19, fz - 5.0], [fx + 25, fz], [fx + 19, fz + 5.0],
+      [fx + 21, fz + 10.0], [fx + 12, fz + 11.5], [fx - 5, fz + 8.0], [fx - 12, fz + 4.5]
     ];
-    const nF = fanPts.length, cX = 8, cZ = fz;
+    const nF = fanPts.length, cX = fx + 6, cZ = fz;
     for (let i = 0; i < nF; i++) {
       const p0 = fanPts[i], p1 = fanPts[(i + 1) % nF];
       mb.addTri([cX, 4.5, cZ], [p1[0], 3.6, p1[1]], [p0[0], 3.6, p0[1]], [0,1,0],[0,1,0],[0,1,0]);
       mb.addTri([cX, 0.0, cZ], [p0[0], 0.0, p0[1]], [p1[0], 0.0, p1[1]], [0,-1,0],[0,-1,0],[0,-1,0]);
       mb.addQuad([p0[0], 0.0, p0[1]], [p0[0], 3.6, p0[1]], [p1[0], 3.6, p1[1]], [p1[0], 0.0, p1[1]]);
     }
-    for (const toe of toes) mb.addCylinderAxis([0, 3.5, fz], [toe[0] - 1, 2.2, toe[2]], 2.5, 1.4, 10, true);
-    mb.addCylinder(2, 3.5, 8.2, 4.6, 3.6, 16, fz, true, true);
+    for (const toe of toes) mb.addCylinderAxis([fx - 2, 3.5, fz], [toe[0] - 1, 2.2, toe[2]], 2.4, 1.35, 10, true);
+    mb.addCylinder(fx, 3.5, 8.2, 4.4, 3.5, 16, fz, true, true);
     return mb.build(26);
   }
 
   function buildLandingStruts() {
     const mb = new MeshBuilder();
+    const fx = 6.0;
     for (const s of [-1, 1]) {
-      const fz = s * 22.5;
-      mb.addCylinder(2, 15.5, 30.5, 3.0, 3.3, 16, fz, true, true);
-      mb.addCylinder(2, 7.0, 17.5, 1.85, 1.85, 16, fz, true, true);
+      const fz = s * 28.0;
+      mb.addCylinder(fx, 15.5, 31.5, 2.9, 3.2, 16, fz, true, true);
+      mb.addCylinder(fx, 7.0, 17.5, 1.8, 1.8, 16, fz, true, true);
       const springPts = [];
       for (let k = 0; k <= 36; k++) {
         const t = k / 36, a = t * Math.PI * 2 * 5.5;
-        springPts.push([2 + Math.cos(a) * 4.3, 9.5 + t * 14.5, fz + Math.sin(a) * 4.3]);
+        springPts.push([fx + Math.cos(a) * 4.1, 9.5 + t * 14.5, fz + Math.sin(a) * 4.1]);
       }
-      mb.addTube(springPts, 0.72, 48, 7, true);
+      mb.addTube(springPts, 0.70, 48, 7, true);
     }
     return mb.build(28);
   }
@@ -1261,9 +1263,9 @@
   }
   function buildBearingBalls() {
     const mb = new MeshBuilder();
-    for (let i = 0; i < 10; i++) {
-      const a = (i / 10) * Math.PI * 2;
-      mb.addSphere(Math.cos(a) * 6.25, 0, Math.sin(a) * 6.25, 1.45, 1.45, 1.45, 12, 10);
+    for (let i = 0; i < 12; i++) {
+      const a = (i / 12) * Math.PI * 2;
+      mb.addSphere(Math.cos(a) * 5.90, 0, Math.sin(a) * 5.90, 1.00, 1.00, 1.00, 12, 10);
     }
     return mb.build(35);
   }
@@ -1461,15 +1463,15 @@
   function buildSaddleTank(isLiquid) {
     const mb = new MeshBuilder();
     const uSegs = 24, vSegs = 16;
-    const rMin = isLiquid ? 30.8 : 29.5, rMax = isLiquid ? 50.0 : 51.8;
-    const yMin = isLiquid ? 46.5 : 44.5, yMax = isLiquid ? 79.0 : 90.0;
-    const aStart = Math.PI * 0.68, aEnd = Math.PI * 1.32, rings = [];
+    const rMin = isLiquid ? 30.6 : 29.5, rMax = isLiquid ? 43.8 : 45.0;
+    const yMin = isLiquid ? 47.5 : 46.0, yMax = isLiquid ? 78.5 : 88.0;
+    const aStart = Math.PI * 0.72, aEnd = Math.PI * 1.28, rings = [];
     for (let i = 0; i <= uSegs; i++) {
       const t = i / uSegs, ang = aStart + (aEnd - aStart) * t, taper = Math.sin(t * Math.PI);
       const rMid = (rMin + rMax) * 0.5;
-      const rHalf = ((rMax - rMin) * 0.5) * (0.45 + 0.55 * Math.pow(taper, 0.45));
-      const yMid = (yMin + yMax) * 0.5 + (isLiquid ? 0 : (1 - taper) * 2.0);
-      const yHalf = ((yMax - yMin) * 0.5) * (0.62 + 0.38 * Math.pow(taper, 0.4));
+      const rHalf = ((rMax - rMin) * 0.5) * (0.42 + 0.58 * Math.pow(taper, 0.45));
+      const yMid = (yMin + yMax) * 0.5 + (isLiquid ? 0 : (1 - taper) * 1.6);
+      const yHalf = ((yMax - yMin) * 0.5) * (0.60 + 0.40 * Math.pow(taper, 0.4));
       const ca = Math.cos(ang), sa = Math.sin(ang), ring = [];
       for (let j = 0; j <= vSegs; j++) {
         const phi = (j / vSegs) * Math.PI * 2, cp = Math.cos(phi), sp = Math.sin(phi);
@@ -1492,8 +1494,8 @@
       }
     }
     if (!isLiquid) {
-      mb.addCylinder(-44, 88.5, 93.2, 4.0, 4.0, 16, 0, true, true);
-      mb.addCylinder(-44, 93.2, 95.0, 4.6, 4.6, 12, 0, true, true);
+      mb.addCylinder(-40.5, 86.5, 91.2, 3.8, 3.8, 16, 0, true, true);
+      mb.addCylinder(-40.5, 91.2, 93.0, 4.4, 4.4, 12, 0, true, true);
     }
     return mb.build(28);
   }
