@@ -46,9 +46,13 @@ def load_user_spec(yaml_str_or_path: Optional[str] = None) -> Dict[str, Any]:
     """Load user vehicle/propulsion/avionics YAML specification."""
     if not yaml_str_or_path:
         return yaml.safe_load(DEFAULT_AHIRU_YAML)
-    p = Path(yaml_str_or_path)
-    if p.exists() and p.is_file():
-        return yaml.safe_load(p.read_text(encoding="utf-8"))
+    if "\n" not in yaml_str_or_path and len(yaml_str_or_path) < 512:
+        try:
+            p = Path(yaml_str_or_path)
+            if p.exists() and p.is_file():
+                return yaml.safe_load(p.read_text(encoding="utf-8"))
+        except OSError:
+            pass
     return yaml.safe_load(yaml_str_or_path)
 
 
